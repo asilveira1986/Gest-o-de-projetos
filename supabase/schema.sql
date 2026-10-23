@@ -240,61 +240,84 @@ alter table anexos enable row level security;
 alter table configuracoes enable row level security;
 
 -- usuarios: todos autenticados leem; admin altera; cada um altera o próprio nome.
+drop policy if exists usuarios_select on usuarios;
 create policy usuarios_select on usuarios for select to authenticated using (true);
+drop policy if exists usuarios_admin on usuarios;
 create policy usuarios_admin on usuarios for all to authenticated
   using (is_admin()) with check (is_admin());
 
+drop policy if exists clientes_all on clientes;
 create policy clientes_all on clientes for all to authenticated
   using (is_admin()) with check (is_admin());
+drop policy if exists clientes_select on clientes;
 create policy clientes_select on clientes for select to authenticated using (true);
 
+drop policy if exists projetos_select on projetos;
 create policy projetos_select on projetos for select to authenticated using (pode_acessar_projeto(id));
+drop policy if exists projetos_write on projetos;
 create policy projetos_write on projetos for all to authenticated
   using (is_admin()) with check (is_admin());
 
+drop policy if exists membros_select on projeto_membros;
 create policy membros_select on projeto_membros for select to authenticated using (pode_acessar_projeto(projeto_id));
+drop policy if exists membros_write on projeto_membros;
 create policy membros_write on projeto_membros for all to authenticated
   using (is_admin()) with check (is_admin());
 
+drop policy if exists tarefas_all on tarefas;
 create policy tarefas_all on tarefas for all to authenticated
   using (pode_acessar_projeto(projeto_id)) with check (pode_acessar_projeto(projeto_id));
+drop policy if exists subtarefas_all on subtarefas;
 create policy subtarefas_all on subtarefas for all to authenticated
   using (pode_acessar_projeto(projeto_da_tarefa(tarefa_id)))
   with check (pode_acessar_projeto(projeto_da_tarefa(tarefa_id)));
+drop policy if exists comentarios_all on comentarios;
 create policy comentarios_all on comentarios for all to authenticated
   using (pode_acessar_projeto(projeto_da_tarefa(tarefa_id)))
   with check (pode_acessar_projeto(projeto_da_tarefa(tarefa_id)));
+drop policy if exists anexos_all on anexos;
 create policy anexos_all on anexos for all to authenticated
   using (pode_acessar_projeto(projeto_da_tarefa(tarefa_id)))
   with check (pode_acessar_projeto(projeto_da_tarefa(tarefa_id)));
 
 -- Horas: lê quem acessa o projeto; edita/exclui só o dono (admin edita todos).
+drop policy if exists horas_select on lancamentos_horas;
 create policy horas_select on lancamentos_horas for select to authenticated
   using (pode_acessar_projeto(projeto_da_tarefa(tarefa_id)));
+drop policy if exists horas_insert on lancamentos_horas;
 create policy horas_insert on lancamentos_horas for insert to authenticated
   with check (pode_acessar_projeto(projeto_da_tarefa(tarefa_id)) and (usuario_id = auth.uid() or is_admin()));
+drop policy if exists horas_update on lancamentos_horas;
 create policy horas_update on lancamentos_horas for update to authenticated
   using (usuario_id = auth.uid() or is_admin());
+drop policy if exists horas_delete on lancamentos_horas;
 create policy horas_delete on lancamentos_horas for delete to authenticated
   using (usuario_id = auth.uid() or is_admin());
 
+drop policy if exists intervalos_all on intervalos_tempo;
 create policy intervalos_all on intervalos_tempo for all to authenticated
   using (exists (select 1 from lancamentos_horas h where h.id = lancamento_id
                  and (h.usuario_id = auth.uid() or is_admin())))
   with check (exists (select 1 from lancamentos_horas h where h.id = lancamento_id
                  and (h.usuario_id = auth.uid() or is_admin())));
+drop policy if exists intervalos_select on intervalos_tempo;
 create policy intervalos_select on intervalos_tempo for select to authenticated
   using (exists (select 1 from lancamentos_horas h where h.id = lancamento_id
                  and pode_acessar_projeto(projeto_da_tarefa(h.tarefa_id))));
 
+drop policy if exists categorias_select on categorias_custo;
 create policy categorias_select on categorias_custo for select to authenticated using (true);
+drop policy if exists categorias_write on categorias_custo;
 create policy categorias_write on categorias_custo for all to authenticated
   using (is_admin()) with check (is_admin());
 
+drop policy if exists custos_all on custos;
 create policy custos_all on custos for all to authenticated
   using (pode_acessar_projeto(projeto_id)) with check (pode_acessar_projeto(projeto_id));
 
+drop policy if exists config_select on configuracoes;
 create policy config_select on configuracoes for select to authenticated using (true);
+drop policy if exists config_write on configuracoes;
 create policy config_write on configuracoes for all to authenticated
   using (is_admin()) with check (is_admin());
 
@@ -304,6 +327,7 @@ insert into storage.buckets (id, name, public)
 values ('comprovantes','comprovantes', false), ('anexos','anexos', false)
 on conflict do nothing;
 
+drop policy if exists storage_rw on storage.objects;
 create policy storage_rw on storage.objects for all to authenticated
   using (bucket_id in ('comprovantes','anexos'))
   with check (bucket_id in ('comprovantes','anexos'));
