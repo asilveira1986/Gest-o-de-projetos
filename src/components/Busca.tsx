@@ -25,7 +25,8 @@ export function Busca({ aberta, onFechar, onLancar }: { aberta: boolean; onFecha
   const fixos = useMemo<Item[]>(() => [
     { id: 'a1', rotulo: 'Lançar horas', grupo: 'Ações', acao: () => { onFechar(); onLancar('hora') } },
     { id: 'a2', rotulo: 'Lançar custo', grupo: 'Ações', acao: () => { onFechar(); onLancar('custo') } },
-    { id: 'p0', rotulo: 'Painel', grupo: 'Páginas', acao: ir('/') },
+    { id: 'p00', rotulo: 'Hoje', grupo: 'Páginas', acao: ir('/') },
+    { id: 'p0', rotulo: 'Painel', grupo: 'Páginas', acao: ir('/painel') },
     { id: 'p1', rotulo: 'Projetos', grupo: 'Páginas', acao: ir('/projetos') },
     { id: 'p2', rotulo: 'Clientes', grupo: 'Páginas', acao: ir('/clientes') },
     { id: 'p3', rotulo: 'Faturamento', grupo: 'Páginas', acao: ir('/faturamento') },

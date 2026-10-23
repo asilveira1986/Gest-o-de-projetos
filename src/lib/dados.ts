@@ -1,4 +1,4 @@
-import { alertaOrcamento, custoProjetado, custoTotal, margem, pctConsumido, progresso, receita, saldo, tarefaAtrasada } from './calc'
+import { alertaOrcamento, custoProjetado, previsaoEstouro, type Previsao, custoTotal, margem, pctConsumido, progresso, receita, saldo, tarefaAtrasada } from './calc'
 import { hoje } from './format'
 import { ok, supabase } from './supabase'
 import type { Custo, LancamentoHoras, Projeto, Tarefa } from './types'
@@ -21,6 +21,7 @@ export interface Resumo {
   margem: number
   progresso: number
   atrasadas: number
+  previsao: Previsao | null
 }
 
 export function montarResumo(p: Projeto, tarefas: Tarefa[], horas: LancComTarefa[], custos: Custo[]): Resumo {
@@ -44,6 +45,7 @@ export function montarResumo(p: Projeto, tarefas: Tarefa[], horas: LancComTarefa
     margem: margem(rec, custo),
     progresso: progresso(tarefas),
     atrasadas: tarefas.filter((t) => tarefaAtrasada(t, h)).length,
+    previsao: ['concluido', 'cancelado'].includes(p.status) ? null : previsaoEstouro(horas, custos, p.orcamento, p.prazo, h),
   }
 }
 

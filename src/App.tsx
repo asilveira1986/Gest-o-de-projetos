@@ -7,6 +7,7 @@ import { finalizarPausasExpiradas } from './lib/timer'
 import { Clientes } from './pages/Clientes'
 import { Configuracoes } from './pages/Configuracoes'
 import { Dashboard } from './pages/Dashboard'
+import { Hoje } from './pages/Hoje'
 import { Login } from './pages/Login'
 import { Projetos } from './pages/Projetos'
 
@@ -28,7 +29,8 @@ function Rotas() {
     <Suspense fallback={<Carregando />}>
     <Routes>
       <Route element={<Layout />}>
-        <Route index element={<Dashboard />} />
+        <Route index element={<Hoje />} />
+        <Route path="painel" element={<Dashboard />} />
         <Route path="projetos" element={<Projetos />} />
         <Route path="projetos/:id/:aba?" element={<ProjetoPage />} />
         <Route path="tarefas/:id" element={<TarefaPage />} />

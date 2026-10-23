@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CustoForm } from '../components/CustoForm'
 import { HorasForm } from '../components/HorasForm'
+import { AvisoPrevisao } from '../components/AvisoPrevisao'
 import { BarraOrcamento, Campo, Carregando, Erro, Indicador, Modal, Selo, Vazio } from '../components/ui'
 import { useCarga } from '../components/useAsync'
 import { useAuth } from '../lib/auth'
@@ -120,6 +121,7 @@ function Resumo({ r, usuarios, membros, onMembro }: { r: ReturnType<typeof monta
         <Indicador rotulo="Receita por hora" valor={brl(receitaPorHora(r.receita, r.totalHoras))} sub="Receita ÷ horas trabalhadas" />
       </div>
       <BarraOrcamento pct={r.pct} alerta={r.alerta} />
+      <AvisoPrevisao previsao={r.previsao} />
 
       <div className="card">
         <h2 className="mb-2 font-medium">Gasto acumulado vs. orçamento</h2>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  alertaOrcamento, custoProjetado, custoTotal, excedeLimiteDia, horasDosIntervalos, margem,
+  alertaOrcamento, custoProjetado, diasEntre, inicioSemana, previsaoEstouro, custoTotal, excedeLimiteDia, horasDosIntervalos, margem,
   pausaExpirada, pctConsumido, progresso, receita, receitaPorHora, saldo, somarDias, statusFatura, tarefaAtrasada, valorVendaEfetivo,
 } from './calc'
 import { fmtData, fmtHoras, fmtRelogio, parseHoras } from './format'
@@ -111,5 +111,40 @@ describe('formatação', () => {
     expect(parseHoras('1,5')).toBe(1.5)
     expect(parseHoras('1:30')).toBe(1.5)
     expect(parseHoras('')).toBeNaN()
+  })
+})
+
+describe('previsão de estouro', () => {
+  const dia = (data: string, horas: number) => ({ data, horas, valor_hora_aplicado: 100 })
+  it('calcula dias até esgotar o orçamento no ritmo recente', () => {
+    // 7 dias seguidos de R$ 200 = R$ 1.400; janela de 7 dias → ritmo 200/dia
+    const horas = ['16', '17', '18', '19', '20', '21', '22'].map((d) => dia(`2026-10-${d}`, 2))
+    const p = previsaoEstouro(horas, [], 2000, null, '2026-10-22')!
+    expect(p.ritmoDia).toBe(200)
+    expect(p.dias).toBe(3) // saldo 600 ÷ 200
+    expect(p.data).toBe('2026-10-25')
+  })
+  it('avisa quando o estouro vem antes do prazo', () => {
+    const horas = ['20', '21', '22'].map((d) => dia(`2026-10-${d}`, 2))
+    expect(previsaoEstouro(horas, [], 2000, '2026-10-30', '2026-10-22')!.antesDoPrazo).toBe(true)
+    expect(previsaoEstouro(horas, [], 100000, '2026-10-30', '2026-10-22')!.antesDoPrazo).toBe(false)
+  })
+  it('estourado, sem orçamento e sem lançamentos', () => {
+    expect(previsaoEstouro([dia('2026-10-22', 30)], [], 2000, null, '2026-10-22')!.estourado).toBe(true)
+    expect(previsaoEstouro([dia('2026-10-22', 1)], [], 0, null, '2026-10-22')).toBeNull()
+    expect(previsaoEstouro([], [], 1000, null, '2026-10-22')).toBeNull()
+  })
+  it('só custos realizados entram no ritmo', () => {
+    const p = previsaoEstouro([], [{ data: '2026-10-22', valor: 300, situacao: 'realizado' }, { data: '2026-10-22', valor: 9999, situacao: 'previsto' }], 1000, null, '2026-10-22')!
+    expect(p.ritmoDia).toBe(100) // 300 ÷ janela mínima de 3 dias
+  })
+})
+
+describe('datas', () => {
+  it('dias entre e início da semana', () => {
+    expect(diasEntre('2026-10-20', '2026-10-23')).toBe(3)
+    expect(inicioSemana('2026-10-23')).toBe('2026-10-19') // sexta → segunda
+    expect(inicioSemana('2026-10-25')).toBe('2026-10-19') // domingo
+    expect(inicioSemana('2026-10-19')).toBe('2026-10-19')
   })
 })

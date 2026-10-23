@@ -4,8 +4,26 @@ import { Campo, Carregando, Erro, Indicador, Modal, Selo, Vazio } from '../compo
 import { useCarga } from '../components/useAsync'
 import { somarDias, statusFatura } from '../lib/calc'
 import { brl, fmtData, fmtHoras, hoje } from '../lib/format'
+import { gerarFaturaPdf } from '../lib/faturaPdf'
 import { ok, supabase } from '../lib/supabase'
-import type { Custo, Fatura, LancamentoHoras } from '../lib/types'
+import type { Cliente, Custo, Fatura, LancamentoHoras } from '../lib/types'
+
+async function baixarPdf(f: Fatura) {
+  const [h, c, cl, cfg] = await Promise.all([
+    supabase.from('lancamentos_horas').select('horas,valor_venda_aplicado,tarefas(titulo,projetos(nome))').eq('fatura_id', f.id),
+    supabase.from('custos').select('descricao,valor').eq('fatura_id', f.id),
+    supabase.from('clientes').select('*').eq('id', f.cliente_id).single(),
+    supabase.from('configuracoes').select('*').eq('id', 1).single(),
+  ])
+  const config = ok(cfg) as { empresa_nome: string | null; logo_data: string | null; dados_pagamento: string | null }
+  gerarFaturaPdf({
+    fatura: f, cliente: ok(cl) as Cliente,
+    empresa: { nome: config.empresa_nome, logo: config.logo_data, pagamento: config.dados_pagamento },
+    horas: (ok(h) as unknown as { horas: number; valor_venda_aplicado: number; tarefas: { titulo: string; projetos: { nome: string } } }[])
+      .map((x) => ({ projeto: x.tarefas.projetos.nome, tarefa: x.tarefas.titulo, horas: x.horas, valor_venda_aplicado: x.valor_venda_aplicado })),
+    custos: ok(c) as { descricao: string; valor: number }[],
+  })
+}
 
 type HoraPend = LancamentoHoras & { tarefas: { titulo: string; projeto_id: string; projetos: { nome: string; cliente_id: string | null } } }
 type CustoPend = Custo & { projetos: { nome: string; cliente_id: string | null } }
@@ -130,13 +148,14 @@ export function Faturamento() {
                 <td className="td">{fmtData(f.emitida_em)}</td><td className="td">{fmtData(f.vencimento)}</td><td className="td">{brl(f.valor)}</td>
                 <td className="td">{st === 'paga' ? <Selo cor="green">paga {fmtData(f.pago_em)}</Selo> : st === 'vencida' ? <Selo cor="red">vencida</Selo> : <Selo cor="amber">em aberto</Selo>}</td>
                 <td className="td whitespace-nowrap text-right">
+                  <button className="mr-3 text-slate-600 hover:text-brand-700" onClick={() => baixarPdf(f).catch((e: Error) => alert(e.message))}>PDF</button>
                   {st !== 'paga' ? <button className="text-brand-700" onClick={() => setPagar(f)}>registrar pagamento</button>
                     : <button className="text-slate-500" onClick={async () => { ok(await supabase.from('faturas').update({ pago_em: null, valor_pago: null }).eq('id', f.id)); void recarregar() }}>desfazer</button>}
                 </td></tr>
             )
           })}</tbody></table></div>
       ))}
-      <p className="text-xs text-slate-500">Para o PDF a enviar ao cliente, use <Link className="text-brand-700 underline" to="/relatorios">Relatórios</Link>.</p>
+      <p className="text-xs text-slate-500">O PDF da fatura sai na lista de faturas. Para o relatório detalhado de serviços, use <Link className="text-brand-700 underline" to="/relatorios">Relatórios</Link>.</p>
 
       {gerar && <Modal titulo={`Gerar fatura — ${gerar.nome}`} onClose={() => setGerar(null)}><FormGerar grupo={gerar} onSalvo={() => { setGerar(null); setAba('faturas'); void recarregar() }} /></Modal>}
       {avulsa && dados && <Modal titulo="Fatura avulsa" onClose={() => setAvulsa(false)}><FormAvulsa clientes={dados.clientes} fixos={dados.fixos} onSalvo={() => { setAvulsa(false); setAba('faturas'); void recarregar() }} /></Modal>}

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { AvisoPrevisao } from '../components/AvisoPrevisao'
 import { BarraOrcamento, Carregando, Erro, Indicador, Selo, Vazio } from '../components/ui'
 import { useCarga } from '../components/useAsync'
 import { carregarResumos } from '../lib/dados'
@@ -50,6 +51,7 @@ export function Dashboard() {
                 </p>
               )}
             </div>
+            <AvisoPrevisao previsao={r.previsao} />
             <div className="flex justify-between text-xs text-slate-600">
               <span>{fmtHoras(r.totalHoras)} / {fmtHoras(r.horasEstimadas)} est.</span>
               <span>Progresso {Math.round(r.progresso)}%</span>

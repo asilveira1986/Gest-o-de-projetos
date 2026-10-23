@@ -103,3 +103,63 @@ export const valorVendaEfetivo = (
   projeto: { valor_hora_venda: number | null },
   cliente?: { valor_hora_venda_padrao: number } | null,
 ) => projeto.valor_hora_venda ?? cliente?.valor_hora_venda_padrao ?? 0
+
+/** Dias corridos entre duas datas yyyy-mm-dd (b − a). */
+export const diasEntre = (a: string, b: string) =>
+  Math.round((new Date(`${b}T12:00:00Z`).getTime() - new Date(`${a}T12:00:00Z`).getTime()) / 86_400_000)
+
+/** Segunda-feira da semana de `data` (yyyy-mm-dd). */
+export function inicioSemana(data: string) {
+  const dia = new Date(`${data}T12:00:00Z`).getUTCDay() // 0 = domingo
+  return somarDias(data, -((dia + 6) % 7))
+}
+
+export interface Previsao {
+  /** orçamento já consumido por completo */
+  estourado: boolean
+  /** dias até esgotar o orçamento no ritmo atual (null = sem ritmo) */
+  dias: number | null
+  /** data estimada do estouro */
+  data: string | null
+  /** gasto médio por dia usado na estimativa */
+  ritmoDia: number
+  /** o estouro previsto vem antes do prazo do projeto */
+  antesDoPrazo: boolean
+}
+
+const JANELA_RITMO = 14
+const JANELA_MIN = 3
+
+/**
+ * Previsão de estouro: ritmo = gasto (mão de obra + custos realizados) dos últimos
+ * 14 dias ÷ dias da janela; dias restantes = saldo ÷ ritmo.
+ * Se o histórico for mais curto que 14 dias, usa os dias existentes (mín. 3)
+ * para não subestimar nem inflar o ritmo.
+ */
+export function previsaoEstouro(
+  horas: Pick<LancamentoHoras, 'data' | 'horas' | 'valor_hora_aplicado'>[],
+  custos: Pick<Custo, 'data' | 'valor' | 'situacao'>[],
+  orcamento: number,
+  prazo: string | null,
+  hoje: string,
+): Previsao | null {
+  if (orcamento <= 0) return null
+  const gastos = [
+    ...horas.map((h) => ({ data: h.data, v: h.horas * h.valor_hora_aplicado })),
+    ...custos.filter((c) => c.situacao === 'realizado').map((c) => ({ data: c.data, v: c.valor })),
+  ]
+  if (!gastos.length) return null
+  const total = gastos.reduce((s, g) => s + g.v, 0)
+  if (total >= orcamento) return { estourado: true, dias: 0, data: hoje, ritmoDia: 0, antesDoPrazo: true }
+
+  const primeiro = gastos.reduce((m, g) => (g.data < m ? g.data : m), gastos[0].data)
+  const janela = Math.min(JANELA_RITMO, Math.max(JANELA_MIN, diasEntre(primeiro, hoje) + 1))
+  const desde = somarDias(hoje, -(janela - 1))
+  const recente = gastos.filter((g) => g.data >= desde && g.data <= hoje).reduce((s, g) => s + g.v, 0)
+  const ritmoDia = recente / janela
+  if (ritmoDia <= 0) return { estourado: false, dias: null, data: null, ritmoDia: 0, antesDoPrazo: false }
+
+  const dias = Math.ceil((orcamento - total) / ritmoDia)
+  const data = somarDias(hoje, dias)
+  return { estourado: false, dias, data, ritmoDia, antesDoPrazo: !prazo || data <= prazo }
+}

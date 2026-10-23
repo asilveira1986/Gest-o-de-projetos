@@ -359,3 +359,6 @@ alter table faturas enable row level security;
 drop policy if exists faturas_all on faturas;
 create policy faturas_all on faturas for all to authenticated
   using (is_admin()) with check (is_admin());
+
+-- ───────────── Fase 3: dados de pagamento no PDF da fatura ─────────────
+alter table configuracoes add column if not exists dados_pagamento text;

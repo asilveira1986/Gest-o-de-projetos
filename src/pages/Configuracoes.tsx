@@ -12,7 +12,7 @@ export function Configuracoes() {
   const { dados, carregando, recarregar } = useCarga(async () => ({
     usuarios: ok(await supabase.from('usuarios').select('*').order('nome')) as Usuario[],
     categorias: ok(await supabase.from('categorias_custo').select('*').order('nome')) as { id: string; nome: string }[],
-    config: ok(await supabase.from('configuracoes').select('*').eq('id', 1).single()) as { empresa_nome: string | null; logo_data: string | null },
+    config: ok(await supabase.from('configuracoes').select('*').eq('id', 1).single()) as { empresa_nome: string | null; logo_data: string | null; dados_pagamento: string | null },
   }), [])
 
   if (usuario?.perfil !== 'admin') return <Erro msg="Apenas administradores acessam as configurações." />
@@ -58,9 +58,13 @@ export function Configuracoes() {
       </section>
 
       <section className="card space-y-3">
-        <h2 className="font-medium">Relatório do cliente</h2>
+        <h2 className="font-medium">Relatório e fatura do cliente</h2>
         <Campo rotulo="Nome da empresa"><input className="input" defaultValue={dados.config.empresa_nome ?? ''}
           onBlur={(e) => tenta(async () => ok(await supabase.from('configuracoes').update({ empresa_nome: e.target.value || null }).eq('id', 1)))} /></Campo>
+        <Campo rotulo="Dados para pagamento (aparecem na fatura)">
+          <textarea className="input" rows={3} placeholder="Pix: ...&#10;Banco, agência e conta: ..." defaultValue={dados.config.dados_pagamento ?? ''}
+            onBlur={(e) => tenta(async () => ok(await supabase.from('configuracoes').update({ dados_pagamento: e.target.value || null }).eq('id', 1)))} />
+        </Campo>
         <Campo rotulo="Logo (PNG/JPG)"><input type="file" accept="image/png,image/jpeg" onChange={(e) => logo(e.target.files?.[0])} /></Campo>
         {dados.config.logo_data && <img src={dados.config.logo_data} alt="Logo" className="h-16" />}
       </section>

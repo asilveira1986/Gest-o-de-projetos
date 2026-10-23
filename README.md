@@ -28,6 +28,9 @@ Deploy: Vercel/Railway apontando para este repositório, com as duas variáveis 
 | Relatórios | por projeto e período → Excel, CSV, PDF; PDF do cliente (logo, tarefas, horas por tarefa, total) sem custo interno nem margem |
 | Faturamento | tela "A faturar" por cliente (horas faturáveis + custos repassados), geração de fatura que marca os itens como faturados, vencimento, registro de pagamento, indicadores de a receber / vencido / recebido no mês |
 | Valor fixo | projeto pode ser cobrado por hora ou por valor fechado; receita = valor fixo (+ repasses) e o resumo mostra a receita por hora efetiva; fatura avulsa para projetos fixos |
+| Fatura em PDF | botão PDF em cada fatura: logo, cliente, itens (horas por tarefa e repasses), total, vencimento e dados de pagamento (configuráveis) |
+| Previsão de estouro | pelo ritmo de gasto dos últimos 14 dias, avisa em quantos dias o orçamento acaba (painel e resumo do projeto) |
+| Hoje | tela inicial: meta diária de horas, gráfico da semana, tarefas atrasadas/que vencem, faturas a vencer |
 | Busca | `Ctrl/⌘ + K`: páginas, ações (lançar hora/custo), projetos e tarefas |
 | Atalho | botão flutuante "+" em todas as telas para lançar hora ou custo |
 
