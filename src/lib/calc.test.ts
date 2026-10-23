@@ -3,6 +3,8 @@ import {
   alertaOrcamento, custoProjetado, diasEntre, inicioSemana, previsaoEstouro, custoTotal, excedeLimiteDia, horasDosIntervalos, margem,
   pausaExpirada, pctConsumido, progresso, receita, receitaPorHora, saldo, somarDias, statusFatura, tarefaAtrasada, valorVendaEfetivo,
 } from './calc'
+import { gradeDoMes, mesAnterior, proximoMes } from './calendario'
+import { ocorrenciasDe, proximaOcorrencia } from './recorrencia'
 import { fmtData, fmtHoras, fmtRelogio, parseHoras } from './format'
 import type { Custo, LancamentoHoras } from './types'
 
@@ -146,5 +148,55 @@ describe('datas', () => {
     expect(inicioSemana('2026-10-23')).toBe('2026-10-19') // sexta → segunda
     expect(inicioSemana('2026-10-25')).toBe('2026-10-19') // domingo
     expect(inicioSemana('2026-10-19')).toBe('2026-10-19')
+  })
+})
+
+describe('recorrência de custos', () => {
+  const mensal = { frequencia: 'mensal' as const, inicio: '2026-01-31', fim: null, dia_mes: 31 }
+  it('mensal usa o último dia em meses curtos', () => {
+    expect(ocorrenciasDe(mensal, null, '2026-04-30')).toEqual(['2026-01-31', '2026-02-28', '2026-03-31', '2026-04-30'])
+  })
+  it('só gera depois da última geração e até hoje', () => {
+    expect(ocorrenciasDe(mensal, '2026-02-28', '2026-03-30')).toEqual([])
+    expect(ocorrenciasDe(mensal, '2026-02-28', '2026-03-31')).toEqual(['2026-03-31'])
+  })
+  it('respeita a data final', () => {
+    const r = { frequencia: 'mensal' as const, inicio: '2026-01-10', fim: '2026-03-15', dia_mes: 10 }
+    expect(ocorrenciasDe(r, null, '2026-12-31')).toEqual(['2026-01-10', '2026-02-10', '2026-03-10'])
+  })
+  it('semanal anda de 7 em 7 dias', () => {
+    const r = { frequencia: 'semanal' as const, inicio: '2026-10-01', fim: null, dia_mes: null }
+    expect(ocorrenciasDe(r, null, '2026-10-22')).toEqual(['2026-10-01', '2026-10-08', '2026-10-15', '2026-10-22'])
+  })
+  it('anual repete mês e dia (29/02 cai em 28/02 em ano comum)', () => {
+    const r = { frequencia: 'anual' as const, inicio: '2024-02-29', fim: null, dia_mes: null }
+    expect(ocorrenciasDe(r, null, '2026-12-31')).toEqual(['2024-02-29', '2025-02-28', '2026-02-28'])
+  })
+  it('não gera antes do início e limita a 60 por vez', () => {
+    expect(ocorrenciasDe({ ...mensal, inicio: '2026-11-05', dia_mes: 5 }, null, '2026-10-23')).toEqual([])
+    const diario = { frequencia: 'semanal' as const, inicio: '2000-01-01', fim: null, dia_mes: null }
+    expect(ocorrenciasDe(diario, null, '2026-10-23')).toHaveLength(60)
+  })
+  it('próxima ocorrência', () => {
+    expect(proximaOcorrencia({ frequencia: 'mensal', inicio: '2026-01-10', fim: null, dia_mes: 10 }, '2026-10-23')).toBe('2026-11-10')
+    expect(proximaOcorrencia({ frequencia: 'mensal', inicio: '2026-01-10', fim: '2026-10-31', dia_mes: 10 }, '2026-10-23')).toBeNull()
+  })
+})
+
+describe('grade do calendário', () => {
+  it('outubro/2026 começa na segunda 28/09 e termina no domingo 01/11', () => {
+    const g = gradeDoMes(2026, 10)
+    expect(g[0][0]).toBe('2026-09-28')
+    expect(g[g.length - 1][6]).toBe('2026-11-01')
+    expect(g.every((sem) => sem.length === 7)).toBe(true)
+  })
+  it('fevereiro de 2027 (começa na segunda) cabe em 4 semanas', () => {
+    const g = gradeDoMes(2027, 2)
+    expect(g).toHaveLength(4)
+    expect(g[0][0]).toBe('2027-02-01')
+  })
+  it('navega entre meses na virada do ano', () => {
+    expect(mesAnterior(2026, 1)).toEqual({ ano: 2025, mes: 12 })
+    expect(proximoMes(2026, 12)).toEqual({ ano: 2027, mes: 1 })
   })
 })

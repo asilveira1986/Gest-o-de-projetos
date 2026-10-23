@@ -100,6 +100,7 @@ export interface Custo {
   repassar_cliente: boolean
   faturado_em: string | null
   fatura_id: string | null
+  recorrente_id: string | null
 }
 
 export interface Comentario {
@@ -150,4 +151,21 @@ export interface Fatura {
   pago_em: string | null
   valor_pago: number | null
   clientes?: Pick<Cliente, 'nome'> | null
+}
+
+export interface CustoRecorrente {
+  id: string
+  projeto_id: string
+  tarefa_id: string | null
+  descricao: string
+  categoria: string
+  valor: number
+  fornecedor: string | null
+  repassar_cliente: boolean
+  frequencia: 'semanal' | 'mensal' | 'anual'
+  dia_mes: number | null
+  inicio: string
+  fim: string | null
+  ativo: boolean
+  ultima_geracao: string | null
 }

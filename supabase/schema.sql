@@ -362,3 +362,31 @@ create policy faturas_all on faturas for all to authenticated
 
 -- ───────────── Fase 3: dados de pagamento no PDF da fatura ─────────────
 alter table configuracoes add column if not exists dados_pagamento text;
+
+-- ───────────── Fase 4: custos recorrentes ─────────────
+
+create table if not exists custos_recorrentes (
+  id uuid primary key default gen_random_uuid(),
+  projeto_id uuid not null references projetos(id) on delete cascade,
+  tarefa_id uuid references tarefas(id) on delete set null,
+  descricao text not null,
+  categoria text not null,
+  valor numeric(14,2) not null check (valor > 0),
+  fornecedor text,
+  repassar_cliente boolean not null default false,
+  frequencia text not null default 'mensal' check (frequencia in ('semanal','mensal','anual')),
+  dia_mes integer check (dia_mes between 1 and 31),   -- usado na frequência mensal
+  inicio date not null,
+  fim date,
+  ativo boolean not null default true,
+  ultima_geracao date                                 -- última ocorrência já lançada
+);
+
+alter table custos add column if not exists recorrente_id uuid references custos_recorrentes(id) on delete set null;
+-- impede lançar duas vezes a mesma ocorrência (linhas avulsas têm recorrente_id nulo e não conflitam)
+create unique index if not exists uq_custo_recorrente_data on custos (recorrente_id, data);
+
+alter table custos_recorrentes enable row level security;
+drop policy if exists custos_rec_all on custos_recorrentes;
+create policy custos_rec_all on custos_recorrentes for all to authenticated
+  using (pode_acessar_projeto(projeto_id)) with check (pode_acessar_projeto(projeto_id));

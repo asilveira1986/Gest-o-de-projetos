@@ -31,6 +31,8 @@ Deploy: Vercel/Railway apontando para este repositório, com as duas variáveis 
 | Fatura em PDF | botão PDF em cada fatura: logo, cliente, itens (horas por tarefa e repasses), total, vencimento e dados de pagamento (configuráveis) |
 | Previsão de estouro | pelo ritmo de gasto dos últimos 14 dias, avisa em quantos dias o orçamento acaba (painel e resumo do projeto) |
 | Hoje | tela inicial: meta diária de horas, gráfico da semana, tarefas atrasadas/que vencem, faturas a vencer |
+| Calendário | visão mensal com prazos de projetos e tarefas e vencimento de faturas; filtros por tipo, atrasados em vermelho, detalhe do dia |
+| Custos recorrentes | licenças, hospedagem etc. (semanal/mensal/anual) na aba Custos do projeto; as ocorrências vencidas são lançadas como "realizado" ao abrir o sistema, sem duplicar |
 | Busca | `Ctrl/⌘ + K`: páginas, ações (lançar hora/custo), projetos e tarefas |
 | Atalho | botão flutuante "+" em todas as telas para lançar hora ou custo |
 

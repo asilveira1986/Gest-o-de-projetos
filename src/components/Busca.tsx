@@ -27,6 +27,7 @@ export function Busca({ aberta, onFechar, onLancar }: { aberta: boolean; onFecha
     { id: 'a2', rotulo: 'Lançar custo', grupo: 'Ações', acao: () => { onFechar(); onLancar('custo') } },
     { id: 'p00', rotulo: 'Hoje', grupo: 'Páginas', acao: ir('/') },
     { id: 'p0', rotulo: 'Painel', grupo: 'Páginas', acao: ir('/painel') },
+    { id: 'p01', rotulo: 'Calendário', grupo: 'Páginas', acao: ir('/calendario') },
     { id: 'p1', rotulo: 'Projetos', grupo: 'Páginas', acao: ir('/projetos') },
     { id: 'p2', rotulo: 'Clientes', grupo: 'Páginas', acao: ir('/clientes') },
     { id: 'p3', rotulo: 'Faturamento', grupo: 'Páginas', acao: ir('/faturamento') },

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CustoForm } from '../components/CustoForm'
 import { HorasForm } from '../components/HorasForm'
+import { Recorrentes } from '../components/Recorrentes'
 import { AvisoPrevisao } from '../components/AvisoPrevisao'
 import { BarraOrcamento, Campo, Carregando, Erro, Indicador, Modal, Selo, Vazio } from '../components/ui'
 import { useCarga } from '../components/useAsync'
@@ -322,7 +323,7 @@ function Custos({ projetoId, custos, onMudou }: { projetoId: string; custos: Cus
           <thead className="border-b bg-ink-50"><tr><th className="th">Data</th><th className="th">Descrição</th><th className="th">Categoria</th><th className="th">Valor</th><th className="th">Situação</th><th className="th" /></tr></thead>
           <tbody className="divide-y divide-slate-100">{lista.map((c) => (
             <tr key={c.id}><td className="td">{fmtData(c.data)}</td>
-              <td className="td">{c.descricao}{c.fornecedor && <span className="text-xs text-slate-500"> · {c.fornecedor}</span>}{c.repassar_cliente && <> <Selo cor="blue">repasse</Selo></>}</td>
+              <td className="td">{c.descricao}{c.fornecedor && <span className="text-xs text-slate-500"> · {c.fornecedor}</span>}{c.repassar_cliente && <> <Selo cor="blue">repasse</Selo></>}{c.recorrente_id && <> <Selo>recorrente</Selo></>}</td>
               <td className="td">{c.categoria}</td><td className="td">{brl(c.valor)}</td>
               <td className="td"><Selo cor={c.situacao === 'realizado' ? 'green' : 'amber'}>{c.situacao}</Selo></td>
               <td className="td whitespace-nowrap text-right">
@@ -331,6 +332,7 @@ function Custos({ projetoId, custos, onMudou }: { projetoId: string; custos: Cus
                 <button className="text-red-600" onClick={() => excluir(c)}>excluir</button></td></tr>))}
           </tbody></table></div>
       )}
+      <Recorrentes projetoId={projetoId} onMudou={onMudou} />
       {novo && <Modal titulo="Novo custo" onClose={() => setNovo(false)}><CustoForm projetoId={projetoId} onSalvo={() => { setNovo(false); onMudou() }} /></Modal>}
       {edit && <Modal titulo="Editar custo" onClose={() => setEdit(null)}><CustoForm projetoId={projetoId} custo={edit} onSalvo={() => { setEdit(null); onMudou() }} /></Modal>}
     </div>

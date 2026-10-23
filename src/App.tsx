@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { Carregando } from './components/ui'
 import { AuthProvider, useAuth } from './lib/auth'
+import { gerarCustosRecorrentes } from './lib/recorrentes'
 import { finalizarPausasExpiradas } from './lib/timer'
 import { Clientes } from './pages/Clientes'
 import { Configuracoes } from './pages/Configuracoes'
@@ -14,6 +15,7 @@ import { Projetos } from './pages/Projetos'
 const ProjetoPage = lazy(() => import('./pages/Projeto').then((m) => ({ default: m.ProjetoPage })))
 const TarefaPage = lazy(() => import('./pages/Tarefa').then((m) => ({ default: m.TarefaPage })))
 const Faturamento = lazy(() => import('./pages/Faturamento').then((m) => ({ default: m.Faturamento })))
+const Calendario = lazy(() => import('./pages/Calendario').then((m) => ({ default: m.Calendario })))
 const Relatorios = lazy(() => import('./pages/Relatorios').then((m) => ({ default: m.Relatorios })))
 
 function Rotas() {
@@ -21,6 +23,8 @@ function Rotas() {
   useEffect(() => {
     // pausas com mais de 8 h são finalizadas no último horário ativo
     if (usuario) void finalizarPausasExpiradas(usuario.id).catch(() => {})
+    // custos recorrentes vencidos são lançados ao abrir o app
+    if (usuario) void gerarCustosRecorrentes(usuario.id).catch(() => {})
   }, [usuario])
 
   if (carregando) return <Carregando />
@@ -35,6 +39,7 @@ function Rotas() {
         <Route path="projetos/:id/:aba?" element={<ProjetoPage />} />
         <Route path="tarefas/:id" element={<TarefaPage />} />
         <Route path="clientes" element={<Clientes />} />
+        <Route path="calendario" element={<Calendario />} />
         <Route path="faturamento" element={<Faturamento />} />
         <Route path="relatorios" element={<Relatorios />} />
         <Route path="configuracoes" element={<Configuracoes />} />
