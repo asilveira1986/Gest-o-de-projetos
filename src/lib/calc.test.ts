@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   alertaOrcamento, custoProjetado, custoTotal, excedeLimiteDia, horasDosIntervalos, margem,
-  pausaExpirada, pctConsumido, progresso, receita, saldo, tarefaAtrasada, valorVendaEfetivo,
+  pausaExpirada, pctConsumido, progresso, receita, receitaPorHora, saldo, somarDias, statusFatura, tarefaAtrasada, valorVendaEfetivo,
 } from './calc'
 import { fmtData, fmtHoras, fmtRelogio, parseHoras } from './format'
 import type { Custo, LancamentoHoras } from './types'
@@ -29,6 +29,26 @@ describe('cálculos do projeto', () => {
     expect(saldo(2000, 1300)).toBe(700)
     expect(pctConsumido(2000, 1300)).toBe(65)
     expect(pctConsumido(0, 100)).toBe(0)
+  })
+})
+
+describe('projeto de valor fixo e recebimentos', () => {
+  const fixo = { tipo_cobranca: 'fixo' as const, valor_fixo: 5000 }
+  it('receita fixa ignora horas e soma repasses', () => {
+    expect(receita([h(10, 50, 120)], [c(300, 'realizado', true)], fixo)).toBe(5300)
+  })
+  it('receita por hora efetiva', () => {
+    expect(receitaPorHora(5000, 20)).toBe(250)
+    expect(receitaPorHora(5000, 0)).toBe(0)
+  })
+  it('status da fatura', () => {
+    expect(statusFatura({ pago_em: '2026-10-01', vencimento: '2026-09-01' }, '2026-10-23')).toBe('paga')
+    expect(statusFatura({ pago_em: null, vencimento: '2026-10-22' }, '2026-10-23')).toBe('vencida')
+    expect(statusFatura({ pago_em: null, vencimento: '2026-10-23' }, '2026-10-23')).toBe('aberta')
+  })
+  it('soma dias', () => {
+    expect(somarDias('2026-10-23', 15)).toBe('2026-11-07')
+    expect(somarDias('2026-12-25', 10)).toBe('2027-01-04')
   })
 })
 

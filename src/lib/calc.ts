@@ -1,4 +1,4 @@
-import type { Custo, Intervalo, LancamentoHoras, Tarefa } from './types'
+import type { Custo, Fatura, Intervalo, LancamentoHoras, Projeto, Tarefa } from './types'
 
 export const round2 = (n: number) => Math.round(n * 100) / 100
 
@@ -41,13 +41,37 @@ export function alertaOrcamento(pct: number): AlertaOrcamento {
   return 'ok'
 }
 
-/** Receita = Σ(horas faturáveis × valor_venda_aplicado) + Σ custos repassados */
-export function receita(l: LancamentoHoras[], c: Custo[]) {
-  const horas = l.filter((x) => x.faturavel).reduce((s, x) => s + x.horas * x.valor_venda_aplicado, 0)
+/**
+ * Receita = Σ(horas faturáveis × valor_venda_aplicado) + Σ custos repassados.
+ * Em projeto de valor fixo, as horas não geram receita: vale o valor fechado.
+ */
+export function receita(l: LancamentoHoras[], c: Custo[], projeto?: Pick<Projeto, 'tipo_cobranca' | 'valor_fixo'>) {
+  const base =
+    projeto?.tipo_cobranca === 'fixo'
+      ? projeto.valor_fixo ?? 0
+      : l.filter((x) => x.faturavel).reduce((s, x) => s + x.horas * x.valor_venda_aplicado, 0)
   const repasse = c
     .filter((x) => x.repassar_cliente && x.situacao === 'realizado')
     .reduce((s, x) => s + x.valor, 0)
-  return horas + repasse
+  return base + repasse
+}
+
+/** Receita efetiva por hora trabalhada (mostra se um projeto fixo compensa). */
+export const receitaPorHora = (rec: number, horas: number) => (horas > 0 ? rec / horas : 0)
+
+export type StatusFatura = 'paga' | 'vencida' | 'aberta'
+
+/** Paga se tem data de pagamento; vencida se passou do vencimento sem pagar. */
+export function statusFatura(f: Pick<Fatura, 'pago_em' | 'vencimento'>, hoje: string): StatusFatura {
+  if (f.pago_em) return 'paga'
+  return f.vencimento < hoje ? 'vencida' : 'aberta'
+}
+
+/** Soma `dias` a uma data yyyy-mm-dd (sem depender de fuso). */
+export function somarDias(data: string, dias: number) {
+  const d = new Date(`${data}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + dias)
+  return d.toISOString().slice(0, 10)
 }
 
 export const margem = (rec: number, custo: number) => rec - custo

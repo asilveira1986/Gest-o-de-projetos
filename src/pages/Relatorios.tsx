@@ -57,7 +57,8 @@ export function Relatorios() {
     setErroAcao(null)
     try {
       const cfg = ok(await supabase.from('configuracoes').select('*').eq('id', 1).single()) as { empresa_nome: string | null; logo_data: string | null }
-      const linhas = dados.horas.filter((h) => h.faturavel && (incluirFaturados || !h.faturado_em))
+      const fixo = projeto.tipo_cobranca === 'fixo'
+      const linhas = dados.horas.filter((h) => (fixo || h.faturavel) && (incluirFaturados || !h.faturado_em))
       if (!linhas.length && !confirm('Não há horas faturáveis pendentes no período. Gerar mesmo assim?')) return
       gerarRelatorioCliente({
         projeto, cliente: projeto.clientes, empresa: { nome: cfg.empresa_nome, logo: cfg.logo_data }, de, ate,
@@ -65,6 +66,7 @@ export function Relatorios() {
         custos: dados.custos.filter((c) => c.repassar_cliente && c.situacao === 'realizado'),
         tarefasConcluidas: dados.concluidas.map((t) => t.titulo),
         opcoes: { incluirCustos, mostrarDescricoes },
+        valorFixo: projeto.tipo_cobranca === 'fixo' ? projeto.valor_fixo ?? 0 : null,
       })
       const pendentes = linhas.filter((h) => !h.faturado_em)
       if (marcar && pendentes.length && confirm(`Marcar ${pendentes.length} lançamento(s) como faturados?`)) {
@@ -90,7 +92,7 @@ export function Relatorios() {
             <Indicador rotulo="Horas" valor={fmtHoras(dados.horas.reduce((s, h) => s + h.horas, 0))} />
             <Indicador rotulo="Mão de obra" valor={brl(custoMaoDeObra(dados.horas))} />
             <Indicador rotulo="Custos diretos" valor={brl(custosRealizados(dados.custos))} />
-            <Indicador rotulo="Receita" valor={brl(receita(dados.horas, dados.custos))} />
+            <Indicador rotulo="Receita" valor={brl(receita(dados.horas, dados.custos, projeto))} />
           </div>
           <div className="card space-y-2">
             <h2 className="font-medium">Relatório interno</h2>

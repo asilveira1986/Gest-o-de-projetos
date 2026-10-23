@@ -331,3 +331,31 @@ drop policy if exists storage_rw on storage.objects;
 create policy storage_rw on storage.objects for all to authenticated
   using (bucket_id in ('comprovantes','anexos'))
   with check (bucket_id in ('comprovantes','anexos'));
+
+-- ───────────── Fase 2: faturamento, recebimentos e valor fixo ─────────────
+
+alter table projetos add column if not exists tipo_cobranca text not null default 'hora'
+  check (tipo_cobranca in ('hora','fixo'));
+alter table projetos add column if not exists valor_fixo numeric(14,2);
+
+create table if not exists faturas (
+  id uuid primary key default gen_random_uuid(),
+  cliente_id uuid not null references clientes(id),
+  projeto_id uuid references projetos(id),      -- preenchido em fatura avulsa de projeto fixo
+  descricao text,
+  emitida_em date not null default current_date,
+  vencimento date not null,
+  valor numeric(14,2) not null check (valor >= 0),
+  pago_em date,
+  valor_pago numeric(14,2)
+);
+create index if not exists idx_faturas_cliente on faturas(cliente_id);
+
+alter table lancamentos_horas add column if not exists fatura_id uuid references faturas(id) on delete set null;
+alter table custos add column if not exists faturado_em date;
+alter table custos add column if not exists fatura_id uuid references faturas(id) on delete set null;
+
+alter table faturas enable row level security;
+drop policy if exists faturas_all on faturas;
+create policy faturas_all on faturas for all to authenticated
+  using (is_admin()) with check (is_admin());

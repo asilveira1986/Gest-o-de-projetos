@@ -12,6 +12,7 @@ import { Projetos } from './pages/Projetos'
 
 const ProjetoPage = lazy(() => import('./pages/Projeto').then((m) => ({ default: m.ProjetoPage })))
 const TarefaPage = lazy(() => import('./pages/Tarefa').then((m) => ({ default: m.TarefaPage })))
+const Faturamento = lazy(() => import('./pages/Faturamento').then((m) => ({ default: m.Faturamento })))
 const Relatorios = lazy(() => import('./pages/Relatorios').then((m) => ({ default: m.Relatorios })))
 
 function Rotas() {
@@ -32,6 +33,7 @@ function Rotas() {
         <Route path="projetos/:id/:aba?" element={<ProjetoPage />} />
         <Route path="tarefas/:id" element={<TarefaPage />} />
         <Route path="clientes" element={<Clientes />} />
+        <Route path="faturamento" element={<Faturamento />} />
         <Route path="relatorios" element={<Relatorios />} />
         <Route path="configuracoes" element={<Configuracoes />} />
         <Route path="*" element={<Navigate to="/" replace />} />

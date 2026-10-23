@@ -30,8 +30,11 @@ export function gerarRelatorioCliente(args: {
   custos: Pick<Custo, 'data' | 'descricao' | 'valor'>[]
   tarefasConcluidas: string[]
   opcoes: OpcoesCliente
+  /** Projeto de valor fixo: horas aparecem sem valor e o total é o valor fechado. */
+  valorFixo?: number | null
 }) {
-  const { projeto, cliente, empresa, de, ate, horas, custos, tarefasConcluidas, opcoes } = args
+  const { projeto, cliente, empresa, de, ate, horas, custos, tarefasConcluidas, opcoes, valorFixo } = args
+  const fixo = valorFixo != null
   const doc = new jsPDF()
   let y = 16
   if (empresa.logo) {
@@ -66,12 +69,13 @@ export function gerarRelatorioCliente(args: {
     if (opcoes.mostrarDescricoes && h.descricao) g.descricoes.push(h.descricao)
     porTarefa.set(h.tarefa, g)
   }
-  const totalHoras = [...porTarefa.values()].reduce((s, g) => s + g.valor, 0)
+  const totalHoras = fixo ? valorFixo : [...porTarefa.values()].reduce((s, g) => s + g.valor, 0)
   doc.setFontSize(12)
-  doc.text('Horas por tarefa', 14, y)
-  const head = opcoes.mostrarDescricoes ? ['Tarefa', 'Descrição', 'Horas', 'Valor'] : ['Tarefa', 'Horas', 'Valor']
-  const body = [...porTarefa.entries()].map(([t, g]) =>
-    opcoes.mostrarDescricoes ? [t, g.descricoes.join('; '), fmtHoras(g.horas), brl(g.valor)] : [t, fmtHoras(g.horas), brl(g.valor)])
+  doc.text(fixo ? 'Horas por tarefa (projeto de valor fechado)' : 'Horas por tarefa', 14, y)
+  const head = [...['Tarefa'], ...(opcoes.mostrarDescricoes ? ['Descrição'] : []), 'Horas', ...(fixo ? [] : ['Valor'])]
+  const body = [...porTarefa.entries()].map(([t, g]) => [
+    t, ...(opcoes.mostrarDescricoes ? [g.descricoes.join('; ')] : []), fmtHoras(g.horas), ...(fixo ? [] : [brl(g.valor)]),
+  ])
   autoTable(doc, { startY: y + 3, head: [head], body, styles: { fontSize: 9 } })
   // @ts-expect-error lastAutoTable é injetado pelo plugin
   y = doc.lastAutoTable.finalY + 10

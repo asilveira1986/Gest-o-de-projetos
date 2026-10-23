@@ -26,7 +26,7 @@ export interface Resumo {
 export function montarResumo(p: Projeto, tarefas: Tarefa[], horas: LancComTarefa[], custos: Custo[]): Resumo {
   const custo = custoTotal(horas, custos)
   const pct = pctConsumido(p.orcamento, custo)
-  const rec = receita(horas, custos)
+  const rec = receita(horas, custos, p)
   const h = hoje()
   return {
     projeto: p,

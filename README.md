@@ -6,7 +6,7 @@ Sistema web (MVP, uso individual) para acompanhar projetos, tarefas, horas e cus
 
 ## Como rodar
 
-1. Crie um projeto no [Supabase](https://supabase.com) e execute `supabase/schema.sql` no SQL Editor.
+1. Crie um projeto no [Supabase](https://supabase.com) e execute `supabase/schema.sql` no SQL Editor (o script pode ser reexecutado; ao atualizar o sistema, rode-o de novo para aplicar as novas tabelas/colunas).
 2. Copie `.env.example` para `.env` e preencha `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
 3. `npm install && npm run dev`
 4. Na tela de login, **crie sua conta**: o primeiro usuário vira administrador automaticamente.
@@ -26,6 +26,9 @@ Deploy: Vercel/Railway apontando para este repositório, com as duas variáveis 
 | Painel | orçamento × gasto × saldo × %, horas estimadas × realizadas, tarefas por status/atrasadas, alerta amarelo ≥ 80 % e vermelho > 100 %, gráfico de gasto acumulado |
 | Cobrança | clientes com valor/hora de venda, projeto herda (ou ajusta), horas faturáveis/não, "faturado em", receita/custo/margem por projeto e cliente |
 | Relatórios | por projeto e período → Excel, CSV, PDF; PDF do cliente (logo, tarefas, horas por tarefa, total) sem custo interno nem margem |
+| Faturamento | tela "A faturar" por cliente (horas faturáveis + custos repassados), geração de fatura que marca os itens como faturados, vencimento, registro de pagamento, indicadores de a receber / vencido / recebido no mês |
+| Valor fixo | projeto pode ser cobrado por hora ou por valor fechado; receita = valor fixo (+ repasses) e o resumo mostra a receita por hora efetiva; fatura avulsa para projetos fixos |
+| Busca | `Ctrl/⌘ + K`: páginas, ações (lançar hora/custo), projetos e tarefas |
 | Atalho | botão flutuante "+" em todas as telas para lançar hora ou custo |
 
 ### Regras de negócio

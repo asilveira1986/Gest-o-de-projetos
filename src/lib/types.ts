@@ -29,6 +29,8 @@ export interface Projeto {
   prazo: string | null
   orcamento: number
   valor_hora_venda: number | null
+  tipo_cobranca: 'hora' | 'fixo'
+  valor_fixo: number | null
   status: StatusProjeto
   responsavel_id: string | null
   arquivado: boolean
@@ -75,6 +77,7 @@ export interface LancamentoHoras {
   valor_venda_aplicado: number
   faturavel: boolean
   faturado_em: string | null
+  fatura_id: string | null
   origem: 'cronometro' | 'manual'
   estado: 'rodando' | 'pausado' | 'finalizado'
   intervalos_tempo?: Intervalo[]
@@ -95,6 +98,8 @@ export interface Custo {
   situacao: 'previsto' | 'realizado'
   comprovante_url: string | null
   repassar_cliente: boolean
+  faturado_em: string | null
+  fatura_id: string | null
 }
 
 export interface Comentario {
@@ -132,4 +137,17 @@ export const PRIORIDADE: Record<Prioridade, string> = {
   baixa: 'Baixa',
   media: 'Média',
   alta: 'Alta',
+}
+
+export interface Fatura {
+  id: string
+  cliente_id: string
+  projeto_id: string | null
+  descricao: string | null
+  emitida_em: string
+  vencimento: string
+  valor: number
+  pago_em: string | null
+  valor_pago: number | null
+  clientes?: Pick<Cliente, 'nome'> | null
 }

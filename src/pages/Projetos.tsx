@@ -64,6 +64,8 @@ export function ProjetoForm({ projeto, onSalvo }: { projeto?: Projeto; onSalvo: 
     prazo: projeto?.prazo ?? '',
     orcamento: projeto ? String(projeto.orcamento).replace('.', ',') : '',
     valor_hora_venda: projeto?.valor_hora_venda != null ? String(projeto.valor_hora_venda).replace('.', ',') : '',
+    tipo_cobranca: (projeto?.tipo_cobranca ?? 'hora') as 'hora' | 'fixo',
+    valor_fixo: projeto?.valor_fixo != null ? String(projeto.valor_fixo).replace('.', ',') : '',
     status: (projeto?.status ?? 'planejado') as StatusProjeto,
     responsavel_id: projeto?.responsavel_id ?? usuario?.id ?? '',
   })
@@ -82,6 +84,8 @@ export function ProjetoForm({ projeto, onSalvo }: { projeto?: Projeto; onSalvo: 
       prazo: f.prazo || null,
       orcamento: f.orcamento ? num(f.orcamento) : 0,
       valor_hora_venda: f.valor_hora_venda ? num(f.valor_hora_venda) : null,
+      tipo_cobranca: f.tipo_cobranca,
+      valor_fixo: f.tipo_cobranca === 'fixo' && f.valor_fixo ? num(f.valor_fixo) : null,
       status: f.status,
       responsavel_id: f.responsavel_id || null,
     }
@@ -109,10 +113,19 @@ export function ProjetoForm({ projeto, onSalvo }: { projeto?: Projeto; onSalvo: 
         <Campo rotulo="Início"><input type="date" className="input" value={f.data_inicio} onChange={(e) => set('data_inicio', e.target.value)} /></Campo>
         <Campo rotulo="Prazo"><input type="date" className="input" value={f.prazo} onChange={(e) => set('prazo', e.target.value)} /></Campo>
         <Campo rotulo="Orçamento (R$)"><input className="input" inputMode="decimal" value={f.orcamento} onChange={(e) => set('orcamento', e.target.value)} /></Campo>
-        <Campo rotulo="Valor/hora de venda (R$)">
-          <input className="input" inputMode="decimal" value={f.valor_hora_venda} onChange={(e) => set('valor_hora_venda', e.target.value)}
-            placeholder={cliente ? `Herda do cliente: ${brl(cliente.valor_hora_venda_padrao)}` : 'Herda do cliente'} />
+        <Campo rotulo="Cobrança">
+          <select className="input" value={f.tipo_cobranca} onChange={(e) => set('tipo_cobranca', e.target.value)}>
+            <option value="hora">Por hora</option><option value="fixo">Valor fixo</option>
+          </select>
         </Campo>
+        {f.tipo_cobranca === 'fixo' ? (
+          <Campo rotulo="Valor fechado (R$)"><input className="input" inputMode="decimal" value={f.valor_fixo} onChange={(e) => set('valor_fixo', e.target.value)} required /></Campo>
+        ) : (
+          <Campo rotulo="Valor/hora de venda (R$)">
+            <input className="input" inputMode="decimal" value={f.valor_hora_venda} onChange={(e) => set('valor_hora_venda', e.target.value)}
+              placeholder={cliente ? `Herda do cliente: ${brl(cliente.valor_hora_venda_padrao)}` : 'Herda do cliente'} />
+          </Campo>
+        )}
         <Campo rotulo="Status">
           <select className="input" value={f.status} onChange={(e) => set('status', e.target.value)}>
             {Object.entries(STATUS_PROJETO).map(([k, v]) => <option key={k} value={k}>{v}</option>)}

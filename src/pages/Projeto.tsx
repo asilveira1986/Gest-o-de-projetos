@@ -8,7 +8,7 @@ import { useCarga } from '../components/useAsync'
 import { useAuth } from '../lib/auth'
 import { montarResumo, type LancComTarefa } from '../lib/dados'
 import { brl, fmtData, fmtHoras, fmtPct, hoje } from '../lib/format'
-import { custoMaoDeObra, tarefaAtrasada } from '../lib/calc'
+import { custoMaoDeObra, receitaPorHora, tarefaAtrasada } from '../lib/calc'
 import { ok, supabase, urlAssinada } from '../lib/supabase'
 import { PRIORIDADE, STATUS_TAREFA, type Custo, type Projeto, type StatusTarefa, type Tarefa, type Usuario } from '../lib/types'
 import { ABAS_PROJETO, type Aba } from '../lib/abas'
@@ -87,7 +87,7 @@ export function ProjetoPage() {
       {aba === 'resumo' && <Resumo r={r} usuarios={usuarios} membros={membros} onMembro={alternarMembro} />}
       {aba === 'tarefas' && <Tarefas projetoId={id} tarefas={r.tarefas} usuarios={usuarios} onMudou={recarregar} />}
       {aba === 'custos' && <Custos projetoId={id} custos={r.custos} onMudou={recarregar} />}
-      {aba === 'horas' && <Horas horas={r.horas} onMudou={recarregar} />}
+      {aba === 'horas' && <Horas horas={r.horas} fixo={p.tipo_cobranca === 'fixo'} onMudou={recarregar} />}
 
       {editar && <Modal titulo="Editar projeto" onClose={() => setEditar(false)}><ProjetoForm projeto={p} onSalvo={() => { setEditar(false); void recarregar() }} /></Modal>}
     </div>
@@ -115,8 +115,9 @@ function Resumo({ r, usuarios, membros, onMembro }: { r: ReturnType<typeof monta
         <Indicador rotulo="% consumido" valor={fmtPct(r.pct)} cor={cor} />
         <Indicador rotulo="Horas" valor={fmtHoras(r.totalHoras)} sub={`Estimadas: ${fmtHoras(r.horasEstimadas)}`} />
         <Indicador rotulo="Progresso" valor={`${Math.round(r.progresso)}%`} sub={`${r.tarefas.filter((t) => t.status === 'concluida').length}/${r.tarefas.length} tarefas`} />
-        <Indicador rotulo="Receita" valor={brl(r.receita)} />
+        <Indicador rotulo="Receita" valor={brl(r.receita)} sub={r.projeto.tipo_cobranca === 'fixo' ? 'Valor fixo' : 'Por hora'} />
         <Indicador rotulo="Margem" valor={brl(r.margem)} cor={r.margem < 0 ? 'text-red-600' : 'text-brand-600'} />
+        <Indicador rotulo="Receita por hora" valor={brl(receitaPorHora(r.receita, r.totalHoras))} sub="Receita ÷ horas trabalhadas" />
       </div>
       <BarraOrcamento pct={r.pct} alerta={r.alerta} />
 
@@ -336,7 +337,7 @@ function Custos({ projetoId, custos, onMudou }: { projetoId: string; custos: Cus
 
 // ───────────── Horas ─────────────
 
-function Horas({ horas, onMudou }: { horas: LancComTarefa[]; onMudou: () => void }) {
+function Horas({ horas, fixo, onMudou }: { horas: LancComTarefa[]; fixo: boolean; onMudou: () => void }) {
   const [de, setDe] = useState('')
   const [ate, setAte] = useState('')
   const [pessoa, setPessoa] = useState('')
@@ -345,7 +346,7 @@ function Horas({ horas, onMudou }: { horas: LancComTarefa[]; onMudou: () => void
   const lista = horas.filter((h) => (!de || h.data >= de) && (!ate || h.data <= ate) && (!pessoa || h.usuario_id === pessoa))
   const pessoas = [...new Map(horas.map((h) => [h.usuario_id, h.usuarios?.nome ?? '—'])).entries()]
   const porPessoa = pessoas.map(([id, nome]) => [nome, lista.filter((h) => h.usuario_id === id).reduce((s, h) => s + h.horas, 0)] as const).filter(([, v]) => v > 0)
-  const aFaturar = lista.filter((h) => h.faturavel && !h.faturado_em && h.estado === 'finalizado')
+  const aFaturar = lista.filter((h) => !fixo && h.faturavel && !h.faturado_em && h.estado === 'finalizado')
 
   async function faturar() {
     if (!confirm(`Marcar ${aFaturar.length} lançamento(s) como faturados em ${fmtData(hoje())}?`)) return
@@ -373,7 +374,7 @@ function Horas({ horas, onMudou }: { horas: LancComTarefa[]; onMudou: () => void
               <td className="td"><Link className="text-brand-700 hover:underline" to={`/tarefas/${h.tarefa_id}`}>{h.tarefas.titulo}</Link>{h.descricao && <span className="block text-xs text-slate-500">{h.descricao}</span>}</td>
               <td className="td">{fmtHoras(h.horas)}{h.estado !== 'finalizado' && <> <Selo cor="amber">{h.estado}</Selo></>}</td>
               <td className="td">{brl(h.horas * h.valor_hora_aplicado)}</td>
-              <td className="td">{!h.faturavel ? <Selo>não faturável</Selo> : h.faturado_em ? <Selo cor="green">faturado {fmtData(h.faturado_em)}</Selo> : <Selo cor="amber">a faturar</Selo>}</td>
+              <td className="td">{fixo ? <Selo>valor fixo</Selo> : !h.faturavel ? <Selo>não faturável</Selo> : h.faturado_em ? <Selo cor="green">faturado {fmtData(h.faturado_em)}</Selo> : <Selo cor="amber">a faturar</Selo>}</td>
               <td className="td whitespace-nowrap text-right">{(h.usuario_id === usuario?.id || usuario?.perfil === 'admin') && h.estado === 'finalizado' && <>
                 <button className="mr-2 text-brand-700" onClick={() => setEdit(h)}>editar</button><button className="text-red-600" onClick={() => excluir(h)}>excluir</button></>}</td></tr>))}
           </tbody></table></div>
