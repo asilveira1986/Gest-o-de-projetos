@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useMatch } from 'react-router-dom'
+import { ABAS_PROJETO } from '../lib/abas'
 import { useAuth } from '../lib/auth'
 import { CustoForm } from './CustoForm'
 import { HorasForm } from './HorasForm'
@@ -32,6 +33,9 @@ export function Layout() {
   const { usuario, sair } = useAuth()
   const [fab, setFab] = useState(false)
   const [lancar, setLancar] = useState<'hora' | 'custo' | null>(null)
+  const emProjeto = useMatch({ path: '/projetos/:id', end: false })
+  const { pathname } = useLocation()
+  const abaAtiva = pathname.split('/')[3] || 'resumo'
   const inicial = (usuario?.nome ?? '?').slice(0, 1).toUpperCase()
 
   return (
@@ -41,10 +45,20 @@ export function Layout() {
         <div className="px-2 py-3"><Marca /></div>
         <nav className="mt-6 flex-1 space-y-1">
           {nav.map(([to, nome, ico]) => (
-            <NavLink key={to} to={to} end={to === '/'}
-              className={({ isActive }) => `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${isActive ? 'bg-brand-500/15 text-brand-300 ring-1 ring-brand-400/20' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}>
-              <Ico d={ico} />{nome}
-            </NavLink>
+            <div key={to}>
+              <NavLink to={to} end={to === '/'}
+                className={({ isActive }) => `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${isActive ? 'bg-brand-500/15 text-brand-300 ring-1 ring-brand-400/20' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}>
+                <Ico d={ico} />{nome}
+              </NavLink>
+              {to === '/projetos' && emProjeto && (
+                <div className="ml-5 mt-1 space-y-0.5 border-l border-white/10 pl-3">
+                  {ABAS_PROJETO.map(([k, rotulo]) => (
+                    <Link key={k} to={`/projetos/${emProjeto.params.id}/${k}`}
+                      className={`block rounded-md px-3 py-1.5 text-sm transition ${abaAtiva === k ? 'bg-white/10 font-medium text-brand-300' : 'text-slate-400 hover:text-white'}`}>{rotulo}</Link>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </nav>
         <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3">

@@ -11,15 +11,15 @@ import { brl, fmtData, fmtHoras, fmtPct, hoje } from '../lib/format'
 import { custoMaoDeObra, tarefaAtrasada } from '../lib/calc'
 import { ok, supabase, urlAssinada } from '../lib/supabase'
 import { PRIORIDADE, STATUS_TAREFA, type Custo, type Projeto, type StatusTarefa, type Tarefa, type Usuario } from '../lib/types'
+import { ABAS_PROJETO, type Aba } from '../lib/abas'
 import { ProjetoForm } from './Projetos'
 
-type Aba = 'resumo' | 'tarefas' | 'custos' | 'horas'
 
 export function ProjetoPage() {
-  const { id = '' } = useParams()
+  const { id = '', aba: abaParam } = useParams()
   const nav = useNavigate()
   const { usuario } = useAuth()
-  const [aba, setAba] = useState<Aba>('resumo')
+  const aba: Aba = ABAS_PROJETO.some(([k]) => k === abaParam) ? (abaParam as Aba) : 'resumo'
   const [editar, setEditar] = useState(false)
   const { dados, erro, carregando, recarregar } = useCarga(async () => {
     const [p, t, h, c, m, u] = await Promise.all([
@@ -76,10 +76,11 @@ export function ProjetoPage() {
       </div>
       {bloqueado && <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">Projeto {p.status}: novos lançamentos bloqueados.</p>}
 
-      <div className="flex gap-1 border-b border-slate-200">
-        {(['resumo', 'tarefas', 'custos', 'horas'] as Aba[]).map((a) => (
-          <button key={a} onClick={() => setAba(a)}
-            className={`px-4 py-2 text-sm capitalize ${aba === a ? 'border-b-2 border-brand-600 font-semibold text-brand-700' : 'text-slate-600'}`}>{a}</button>
+      {/* No desktop as abas ficam no menu lateral; aqui só no celular */}
+      <div className="flex gap-1 border-b border-slate-200 lg:hidden">
+        {ABAS_PROJETO.map(([k, nome]) => (
+          <Link key={k} to={`/projetos/${id}/${k}`}
+            className={`px-4 py-2 text-sm ${aba === k ? 'border-b-2 border-brand-600 font-semibold text-brand-700' : 'text-slate-600'}`}>{nome}</Link>
         ))}
       </div>
 

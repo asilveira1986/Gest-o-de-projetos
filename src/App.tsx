@@ -29,7 +29,7 @@ function Rotas() {
       <Route element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="projetos" element={<Projetos />} />
-        <Route path="projetos/:id" element={<ProjetoPage />} />
+        <Route path="projetos/:id/:aba?" element={<ProjetoPage />} />
         <Route path="tarefas/:id" element={<TarefaPage />} />
         <Route path="clientes" element={<Clientes />} />
         <Route path="relatorios" element={<Relatorios />} />
