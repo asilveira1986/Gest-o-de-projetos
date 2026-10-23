@@ -64,7 +64,7 @@ export function ProjetoPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <Link to="/projetos" className="text-xs text-blue-700">← Projetos</Link>
+          <Link to="/projetos" className="text-xs text-brand-700">← Projetos</Link>
           <h1 className="text-xl font-semibold">{p.nome} {p.arquivado && <Selo>arquivado</Selo>}</h1>
           <p className="text-sm text-slate-500">{p.clientes?.nome ?? 'Sem cliente'} · prazo {fmtData(p.prazo)}</p>
         </div>
@@ -79,7 +79,7 @@ export function ProjetoPage() {
       <div className="flex gap-1 border-b border-slate-200">
         {(['resumo', 'tarefas', 'custos', 'horas'] as Aba[]).map((a) => (
           <button key={a} onClick={() => setAba(a)}
-            className={`px-4 py-2 text-sm capitalize ${aba === a ? 'border-b-2 border-blue-600 font-medium text-blue-700' : 'text-slate-600'}`}>{a}</button>
+            className={`px-4 py-2 text-sm capitalize ${aba === a ? 'border-b-2 border-brand-600 font-semibold text-brand-700' : 'text-slate-600'}`}>{a}</button>
         ))}
       </div>
 
@@ -115,7 +115,7 @@ function Resumo({ r, usuarios, membros, onMembro }: { r: ReturnType<typeof monta
         <Indicador rotulo="Horas" valor={fmtHoras(r.totalHoras)} sub={`Estimadas: ${fmtHoras(r.horasEstimadas)}`} />
         <Indicador rotulo="Progresso" valor={`${Math.round(r.progresso)}%`} sub={`${r.tarefas.filter((t) => t.status === 'concluida').length}/${r.tarefas.length} tarefas`} />
         <Indicador rotulo="Receita" valor={brl(r.receita)} />
-        <Indicador rotulo="Margem" valor={brl(r.margem)} cor={r.margem < 0 ? 'text-red-600' : 'text-emerald-600'} />
+        <Indicador rotulo="Margem" valor={brl(r.margem)} cor={r.margem < 0 ? 'text-red-600' : 'text-brand-600'} />
       </div>
       <BarraOrcamento pct={r.pct} alerta={r.alerta} />
 
@@ -188,7 +188,7 @@ function Tarefas({ projetoId, tarefas, usuarios, onMudou }: { projetoId: string;
 
   const Card = ({ t }: { t: Tarefa }) => (
     <div draggable onDragStart={(e) => e.dataTransfer.setData('id', t.id)} className="card cursor-grab space-y-1 !p-3">
-      <Link to={`/tarefas/${t.id}`} className="text-sm font-medium hover:text-blue-700">{t.titulo}</Link>
+      <Link to={`/tarefas/${t.id}`} className="text-sm font-medium hover:text-brand-700">{t.titulo}</Link>
       <div className="flex flex-wrap items-center gap-1 text-xs text-slate-500">
         <Selo cor={t.prioridade === 'alta' ? 'red' : t.prioridade === 'media' ? 'amber' : 'slate'}>{PRIORIDADE[t.prioridade]}</Selo>
         <span>{nomeDe(t.responsavel_id)}</span>
@@ -221,7 +221,7 @@ function Tarefas({ projetoId, tarefas, usuarios, onMudou }: { projetoId: string;
       {vista === 'kanban' ? (
         <div className="grid gap-3 md:grid-cols-4">
           {(Object.keys(STATUS_TAREFA) as StatusTarefa[]).map((s) => (
-            <div key={s} className="min-h-[8rem] rounded-lg bg-slate-100 p-2"
+            <div key={s} className="min-h-[8rem] rounded-xl bg-ink-100/70 p-2.5"
               onDragOver={(e) => e.preventDefault()} onDrop={(e) => { const id = e.dataTransfer.getData('id'); if (id) void mover(id, s) }}>
               <p className="mb-2 px-1 text-xs font-semibold uppercase text-slate-500">{STATUS_TAREFA[s]} ({filtradas.filter((t) => t.status === s).length})</p>
               <div className="space-y-2">{filtradas.filter((t) => t.status === s).map((t) => <Card key={t.id} t={t} />)}</div>
@@ -230,9 +230,9 @@ function Tarefas({ projetoId, tarefas, usuarios, onMudou }: { projetoId: string;
         </div>
       ) : (
         <div className="card overflow-x-auto p-0">
-          <table className="w-full"><thead className="border-b bg-slate-50"><tr><th className="th">Tarefa</th><th className="th">Responsável</th><th className="th">Status</th><th className="th">Prioridade</th><th className="th">Prazo</th><th className="th">Estimativa</th></tr></thead>
+          <table className="w-full"><thead className="border-b bg-ink-50"><tr><th className="th">Tarefa</th><th className="th">Responsável</th><th className="th">Status</th><th className="th">Prioridade</th><th className="th">Prazo</th><th className="th">Estimativa</th></tr></thead>
             <tbody className="divide-y divide-slate-100">{filtradas.map((t) => (
-              <tr key={t.id}><td className="td"><Link className="text-blue-700 hover:underline" to={`/tarefas/${t.id}`}>{t.titulo}</Link></td><td className="td">{nomeDe(t.responsavel_id)}</td>
+              <tr key={t.id}><td className="td"><Link className="text-brand-700 hover:underline" to={`/tarefas/${t.id}`}>{t.titulo}</Link></td><td className="td">{nomeDe(t.responsavel_id)}</td>
                 <td className="td">{STATUS_TAREFA[t.status]}</td><td className="td">{PRIORIDADE[t.prioridade]}</td>
                 <td className={`td ${tarefaAtrasada(t, hoje_) ? 'text-red-600' : ''}`}>{fmtData(t.prazo)}</td><td className="td">{fmtHoras(t.horas_estimadas)}</td></tr>))}
             </tbody></table>
@@ -315,15 +315,15 @@ function Custos({ projetoId, custos, onMudou }: { projetoId: string; custos: Cus
       </div>
       {!lista.length ? <Vazio>Nenhum custo.</Vazio> : (
         <div className="card overflow-x-auto p-0"><table className="w-full">
-          <thead className="border-b bg-slate-50"><tr><th className="th">Data</th><th className="th">Descrição</th><th className="th">Categoria</th><th className="th">Valor</th><th className="th">Situação</th><th className="th" /></tr></thead>
+          <thead className="border-b bg-ink-50"><tr><th className="th">Data</th><th className="th">Descrição</th><th className="th">Categoria</th><th className="th">Valor</th><th className="th">Situação</th><th className="th" /></tr></thead>
           <tbody className="divide-y divide-slate-100">{lista.map((c) => (
             <tr key={c.id}><td className="td">{fmtData(c.data)}</td>
               <td className="td">{c.descricao}{c.fornecedor && <span className="text-xs text-slate-500"> · {c.fornecedor}</span>}{c.repassar_cliente && <> <Selo cor="blue">repasse</Selo></>}</td>
               <td className="td">{c.categoria}</td><td className="td">{brl(c.valor)}</td>
               <td className="td"><Selo cor={c.situacao === 'realizado' ? 'green' : 'amber'}>{c.situacao}</Selo></td>
               <td className="td whitespace-nowrap text-right">
-                {c.comprovante_url && <button className="mr-2 text-blue-700" onClick={() => verComprovante(c)}>comprovante</button>}
-                <button className="mr-2 text-blue-700" onClick={() => setEdit(c)}>editar</button>
+                {c.comprovante_url && <button className="mr-2 text-brand-700" onClick={() => verComprovante(c)}>comprovante</button>}
+                <button className="mr-2 text-brand-700" onClick={() => setEdit(c)}>editar</button>
                 <button className="text-red-600" onClick={() => excluir(c)}>excluir</button></td></tr>))}
           </tbody></table></div>
       )}
@@ -366,15 +366,15 @@ function Horas({ horas, onMudou }: { horas: LancComTarefa[]; onMudou: () => void
       <div className="flex flex-wrap gap-2 text-sm">{porPessoa.map(([n, v]) => <Selo key={n}>{n}: {fmtHoras(v)}</Selo>)}</div>
       {!lista.length ? <Vazio>Nenhum lançamento.</Vazio> : (
         <div className="card overflow-x-auto p-0"><table className="w-full">
-          <thead className="border-b bg-slate-50"><tr><th className="th">Data</th><th className="th">Pessoa</th><th className="th">Tarefa</th><th className="th">Horas</th><th className="th">Custo</th><th className="th">Faturamento</th><th className="th" /></tr></thead>
+          <thead className="border-b bg-ink-50"><tr><th className="th">Data</th><th className="th">Pessoa</th><th className="th">Tarefa</th><th className="th">Horas</th><th className="th">Custo</th><th className="th">Faturamento</th><th className="th" /></tr></thead>
           <tbody className="divide-y divide-slate-100">{lista.map((h) => (
             <tr key={h.id}><td className="td">{fmtData(h.data)}</td><td className="td">{h.usuarios?.nome}</td>
-              <td className="td"><Link className="text-blue-700 hover:underline" to={`/tarefas/${h.tarefa_id}`}>{h.tarefas.titulo}</Link>{h.descricao && <span className="block text-xs text-slate-500">{h.descricao}</span>}</td>
+              <td className="td"><Link className="text-brand-700 hover:underline" to={`/tarefas/${h.tarefa_id}`}>{h.tarefas.titulo}</Link>{h.descricao && <span className="block text-xs text-slate-500">{h.descricao}</span>}</td>
               <td className="td">{fmtHoras(h.horas)}{h.estado !== 'finalizado' && <> <Selo cor="amber">{h.estado}</Selo></>}</td>
               <td className="td">{brl(h.horas * h.valor_hora_aplicado)}</td>
               <td className="td">{!h.faturavel ? <Selo>não faturável</Selo> : h.faturado_em ? <Selo cor="green">faturado {fmtData(h.faturado_em)}</Selo> : <Selo cor="amber">a faturar</Selo>}</td>
               <td className="td whitespace-nowrap text-right">{(h.usuario_id === usuario?.id || usuario?.perfil === 'admin') && h.estado === 'finalizado' && <>
-                <button className="mr-2 text-blue-700" onClick={() => setEdit(h)}>editar</button><button className="text-red-600" onClick={() => excluir(h)}>excluir</button></>}</td></tr>))}
+                <button className="mr-2 text-brand-700" onClick={() => setEdit(h)}>editar</button><button className="text-red-600" onClick={() => excluir(h)}>excluir</button></>}</td></tr>))}
           </tbody></table></div>
       )}
       {edit && <Modal titulo="Editar lançamento" onClose={() => setEdit(null)}><HorasForm lancamento={edit} onSalvo={() => { setEdit(null); onMudou() }} /></Modal>}

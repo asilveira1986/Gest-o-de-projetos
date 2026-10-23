@@ -79,7 +79,7 @@ export function TarefaPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <Link to={`/projetos/${t.projeto_id}`} className="text-xs text-blue-700">← {t.projetos.nome}</Link>
+          <Link to={`/projetos/${t.projeto_id}`} className="text-xs text-brand-700">← {t.projetos.nome}</Link>
           <h1 className="text-xl font-semibold">{t.titulo}</h1>
           <p className="text-sm text-slate-500">
             {PRIORIDADE[t.prioridade]} · prazo {fmtData(t.prazo)} · {usuarios.find((u) => u.id === t.responsavel_id)?.nome ?? 'sem responsável'} · estimativa {fmtHoras(t.horas_estimadas)}
@@ -123,7 +123,7 @@ export function TarefaPage() {
         <div className="card space-y-2">
           <h2 className="font-medium">Anexos</h2>
           {!anexos.length && <p className="text-sm text-slate-500">Nenhum anexo.</p>}
-          {anexos.map((a) => <button key={a.id} className="block text-sm text-blue-700 hover:underline" onClick={() => abrirAnexo(a)}>📎 {a.nome}</button>)}
+          {anexos.map((a) => <button key={a.id} className="block text-sm text-brand-700 hover:underline" onClick={() => abrirAnexo(a)}>📎 {a.nome}</button>)}
           <input type="file" className="text-sm" onChange={(e) => { void anexar(e.target.files?.[0]); e.target.value = '' }} />
         </div>
       </div>

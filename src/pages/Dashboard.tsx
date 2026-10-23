@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { BarraOrcamento, Carregando, Erro, Selo, Vazio } from '../components/ui'
+import { BarraOrcamento, Carregando, Erro, Indicador, Selo, Vazio } from '../components/ui'
 import { useCarga } from '../components/useAsync'
 import { carregarResumos } from '../lib/dados'
 import { brl, fmtHoras, fmtPct } from '../lib/format'
@@ -11,13 +11,24 @@ export function Dashboard() {
   const ativos = (dados ?? []).filter((r) => ['planejado', 'em_andamento', 'pausado'].includes(r.projeto.status))
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Painel geral</h1>
+    <div className="space-y-6">
+      <div>
+        <h1>Painel geral</h1>
+        <p className="text-sm text-slate-500">{ativos.length} projeto(s) ativo(s)</p>
+      </div>
+      {ativos.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Indicador rotulo="Orçamento total" valor={brl(ativos.reduce((s, r) => s + r.projeto.orcamento, 0))} />
+          <Indicador rotulo="Gasto total" valor={brl(ativos.reduce((s, r) => s + r.custo, 0))} />
+          <Indicador rotulo="Margem" valor={brl(ativos.reduce((s, r) => s + r.margem, 0))} cor={ativos.reduce((s, r) => s + r.margem, 0) < 0 ? '!text-red-600' : '!text-brand-600'} />
+          <Indicador rotulo="Tarefas atrasadas" valor={String(ativos.reduce((s, r) => s + r.atrasadas, 0))} cor={ativos.some((r) => r.atrasadas) ? '!text-red-600' : ''} />
+        </div>
+      )}
       <Erro msg={erro} />
-      {!ativos.length && <Vazio>Nenhum projeto ativo. <Link className="text-blue-700 underline" to="/projetos">Crie o primeiro</Link>.</Vazio>}
+      {!ativos.length && <Vazio>Nenhum projeto ativo. <Link className="text-brand-700 underline" to="/projetos">Crie o primeiro</Link>.</Vazio>}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {ativos.map((r) => (
-          <Link key={r.projeto.id} to={`/projetos/${r.projeto.id}`} className="card block space-y-3 hover:border-blue-300">
+          <Link key={r.projeto.id} to={`/projetos/${r.projeto.id}`} className="card block space-y-3 transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg hover:shadow-ink-900/5">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="font-semibold">{r.projeto.nome}</p>

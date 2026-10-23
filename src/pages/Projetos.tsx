@@ -16,7 +16,7 @@ export function Projetos() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold">Projetos</h1>
+        <h1 className="text-2xl font-bold">Projetos</h1>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-1 text-sm">
             <input type="checkbox" checked={arquivados} onChange={(e) => setArquivados(e.target.checked)} /> Mostrar arquivados
@@ -28,13 +28,13 @@ export function Projetos() {
       {carregando ? <Carregando /> : !dados?.length ? <Vazio>Nenhum projeto.</Vazio> : (
         <div className="card overflow-x-auto p-0">
           <table className="w-full">
-            <thead className="border-b border-slate-200 bg-slate-50">
+            <thead className="border-b border-slate-200 bg-ink-50">
               <tr><th className="th">Projeto</th><th className="th">Cliente</th><th className="th">Prazo</th><th className="th">Status</th><th className="th w-48">Orçamento</th></tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {dados.map((r) => (
-                <tr key={r.projeto.id} className="hover:bg-slate-50">
-                  <td className="td"><Link className="font-medium text-blue-700 hover:underline" to={`/projetos/${r.projeto.id}`}>{r.projeto.nome}</Link>{r.projeto.arquivado && <> <Selo>arquivado</Selo></>}</td>
+                <tr key={r.projeto.id} className="hover:bg-ink-50">
+                  <td className="td"><Link className="font-medium text-brand-700 hover:underline" to={`/projetos/${r.projeto.id}`}>{r.projeto.nome}</Link>{r.projeto.arquivado && <> <Selo>arquivado</Selo></>}</td>
                   <td className="td">{r.projeto.clientes?.nome ?? '—'}</td>
                   <td className="td">{fmtData(r.projeto.prazo)}</td>
                   <td className="td">{STATUS_PROJETO[r.projeto.status]}</td>

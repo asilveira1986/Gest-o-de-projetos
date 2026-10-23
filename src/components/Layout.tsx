@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { CustoForm } from './CustoForm'
@@ -6,75 +6,79 @@ import { HorasForm } from './HorasForm'
 import { TimerBar } from './TimerBar'
 import { Modal } from './ui'
 
-const nav = [
-  ['/', 'Painel'],
-  ['/projetos', 'Projetos'],
-  ['/clientes', 'Clientes'],
-  ['/relatorios', 'Relatórios'],
-  ['/configuracoes', 'Configurações'],
+const Ico = ({ d }: { d: ReactNode }) => (
+  <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{d}</svg>
+)
+const nav: [string, string, ReactNode][] = [
+  ['/', 'Painel', <><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></>],
+  ['/projetos', 'Projetos', <><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></>],
+  ['/clientes', 'Clientes', <><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0" /><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 20a6 6 0 0 0-2.5-4.9" /></>],
+  ['/relatorios', 'Relatórios', <><path d="M5 3h10l4 4v14H5z" /><path d="M14 3v5h5M8 13h8M8 17h5" /></>],
+  ['/configuracoes', 'Configurações', <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></>],
 ]
+
+function Marca() {
+  return (
+    <Link to="/" className="flex items-center gap-2.5">
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 shadow-lg shadow-brand-900/30">
+        <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
+      </span>
+      <span className="leading-tight"><span className="block text-sm font-bold text-white">Controle de</span><span className="block text-sm font-bold text-brand-300">Projetos</span></span>
+    </Link>
+  )
+}
 
 export function Layout() {
   const { usuario, sair } = useAuth()
   const [fab, setFab] = useState(false)
   const [lancar, setLancar] = useState<'hora' | 'custo' | null>(null)
+  const inicial = (usuario?.nome ?? '?').slice(0, 1).toUpperCase()
 
   return (
-    <div className="min-h-screen pb-24">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-          <Link to="/" className="font-semibold text-blue-700">Controle de Projetos</Link>
-          <nav className="flex flex-1 gap-1 overflow-x-auto text-sm">
-            {nav.map(([to, nome]) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={to === '/'}
-                className={({ isActive }) =>
-                  `whitespace-nowrap rounded-md px-3 py-1.5 ${isActive ? 'bg-blue-50 font-medium text-blue-700' : 'text-slate-600 hover:bg-slate-100'}`
-                }
-              >
-                {nome}
-              </NavLink>
-            ))}
-          </nav>
-          <button className="text-xs text-slate-500 hover:text-slate-800" onClick={sair} title={usuario?.email}>
-            Sair
-          </button>
+    <div className="min-h-screen lg:pl-64">
+      {/* Barra lateral (desktop) */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-gradient-to-b from-ink-900 to-ink-950 p-4 lg:flex">
+        <div className="px-2 py-3"><Marca /></div>
+        <nav className="mt-6 flex-1 space-y-1">
+          {nav.map(([to, nome, ico]) => (
+            <NavLink key={to} to={to} end={to === '/'}
+              className={({ isActive }) => `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${isActive ? 'bg-brand-500/15 text-brand-300 ring-1 ring-brand-400/20' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}>
+              <Ico d={ico} />{nome}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-500 text-sm font-bold text-white">{inicial}</span>
+          <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-white">{usuario?.nome}</p><button onClick={sair} className="text-xs text-slate-400 hover:text-white">Sair</button></div>
         </div>
+      </aside>
+
+      {/* Topo (mobile) */}
+      <header className="sticky top-0 z-30 bg-ink-900 lg:hidden">
+        <div className="flex items-center justify-between px-4 py-3"><Marca /><button onClick={sair} className="text-xs text-slate-300">Sair</button></div>
+        <nav className="flex gap-1 overflow-x-auto px-3 pb-2">
+          {nav.map(([to, nome]) => (
+            <NavLink key={to} to={to} end={to === '/'}
+              className={({ isActive }) => `whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium ${isActive ? 'bg-brand-500 text-white' : 'text-slate-300'}`}>{nome}</NavLink>
+          ))}
+        </nav>
       </header>
-      <TimerBar />
-      <main className="mx-auto max-w-6xl px-4 py-5">
-        <Outlet />
-      </main>
+
+      <div className="sticky top-0 z-20 lg:top-0"><TimerBar /></div>
+      <main className="mx-auto max-w-6xl px-4 py-6 pb-28 lg:px-8"><Outlet /></main>
 
       {/* Botão flutuante: lançar hora ou custo de qualquer tela */}
       <div className="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-2">
-        {fab && (
-          <>
-            <button className="btn-secondary shadow-lg" onClick={() => { setLancar('custo'); setFab(false) }}>+ Custo</button>
-            <button className="btn-secondary shadow-lg" onClick={() => { setLancar('hora'); setFab(false) }}>+ Horas</button>
-          </>
-        )}
-        <button
-          className="h-14 w-14 rounded-full bg-blue-600 text-3xl text-white shadow-xl hover:bg-blue-700"
-          onClick={() => setFab(!fab)}
-          aria-label="Novo lançamento"
-        >
-          {fab ? '×' : '+'}
-        </button>
+        {fab && (<>
+          <button className="btn-secondary !rounded-full !px-4 shadow-lg" onClick={() => { setLancar('custo'); setFab(false) }}>💰 Custo</button>
+          <button className="btn-secondary !rounded-full !px-4 shadow-lg" onClick={() => { setLancar('hora'); setFab(false) }}>⏱ Horas</button>
+        </>)}
+        <button className="grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-3xl text-white shadow-xl shadow-brand-900/30 transition hover:scale-105"
+          onClick={() => setFab(!fab)} aria-label="Novo lançamento">{fab ? '×' : '+'}</button>
       </div>
 
-      {lancar === 'hora' && (
-        <Modal titulo="Lançar horas" onClose={() => setLancar(null)}>
-          <HorasForm onSalvo={() => { setLancar(null); location.reload() }} />
-        </Modal>
-      )}
-      {lancar === 'custo' && (
-        <Modal titulo="Lançar custo" onClose={() => setLancar(null)}>
-          <CustoForm onSalvo={() => { setLancar(null); location.reload() }} />
-        </Modal>
-      )}
+      {lancar === 'hora' && <Modal titulo="Lançar horas" onClose={() => setLancar(null)}><HorasForm onSalvo={() => { setLancar(null); location.reload() }} /></Modal>}
+      {lancar === 'custo' && <Modal titulo="Lançar custo" onClose={() => setLancar(null)}><CustoForm onSalvo={() => { setLancar(null); location.reload() }} /></Modal>}
     </div>
   )
 }

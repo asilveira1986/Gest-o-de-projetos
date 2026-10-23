@@ -24,14 +24,14 @@ export function Clientes() {
       <Erro msg={erro} />
       {carregando ? <Carregando /> : !dados?.length ? <Vazio>Nenhum cliente.</Vazio> : (
         <div className="card overflow-x-auto p-0"><table className="w-full">
-          <thead className="border-b bg-slate-50"><tr><th className="th">Cliente</th><th className="th">Contato</th><th className="th">Valor/hora</th><th className="th">Projetos</th><th className="th">Receita</th><th className="th">Custo</th><th className="th">Margem</th></tr></thead>
+          <thead className="border-b bg-ink-50"><tr><th className="th">Cliente</th><th className="th">Contato</th><th className="th">Valor/hora</th><th className="th">Projetos</th><th className="th">Receita</th><th className="th">Custo</th><th className="th">Margem</th></tr></thead>
           <tbody className="divide-y divide-slate-100">{dados.map(({ c, projetos, receita, custo, margem }) => (
-            <tr key={c.id} className="cursor-pointer hover:bg-slate-50" onClick={() => setEdit(c)}>
+            <tr key={c.id} className="cursor-pointer hover:bg-ink-50" onClick={() => setEdit(c)}>
               <td className="td font-medium">{c.nome}<span className="block text-xs font-normal text-slate-500">{c.documento}</span></td>
               <td className="td">{c.email}<span className="block text-xs text-slate-500">{c.telefone}</span></td>
               <td className="td">{brl(c.valor_hora_venda_padrao)}</td><td className="td">{projetos}</td>
               <td className="td">{brl(receita)}</td><td className="td">{brl(custo)}</td>
-              <td className={`td font-medium ${margem < 0 ? 'text-red-600' : 'text-emerald-600'}`}>{brl(margem)}</td></tr>))}
+              <td className={`td font-medium ${margem < 0 ? 'text-red-600' : 'text-brand-600'}`}>{brl(margem)}</td></tr>))}
           </tbody></table></div>
       )}
       {edit && <Modal titulo={edit === 'novo' ? 'Novo cliente' : 'Editar cliente'} onClose={() => setEdit(null)}>

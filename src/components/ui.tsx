@@ -8,9 +8,9 @@ export function Modal({ titulo, onClose, children }: { titulo: string; onClose: 
     return () => window.removeEventListener('keydown', f)
   }, [onClose])
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink-950/60 backdrop-blur-sm sm:items-center" onClick={onClose}>
       <div
-        className="max-h-[92vh] w-full overflow-y-auto rounded-t-xl bg-white p-5 shadow-xl sm:max-w-lg sm:rounded-xl"
+        className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white p-6 shadow-2xl sm:max-w-lg sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
@@ -47,14 +47,14 @@ export function Carregando() {
 }
 
 const COR_ALERTA: Record<AlertaOrcamento, string> = {
-  ok: 'bg-emerald-500',
+  ok: 'bg-brand-500',
   amarelo: 'bg-amber-500',
   vermelho: 'bg-red-600',
 }
 
 export function BarraOrcamento({ pct, alerta }: { pct: number; alerta: AlertaOrcamento }) {
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+    <div className="h-2 w-full overflow-hidden rounded-full bg-ink-100">
       <div className={`h-full ${COR_ALERTA[alerta]}`} style={{ width: `${Math.min(100, pct)}%` }} />
     </div>
   )
@@ -62,9 +62,9 @@ export function BarraOrcamento({ pct, alerta }: { pct: number; alerta: AlertaOrc
 
 export function Selo({ children, cor = 'slate' }: { children: ReactNode; cor?: 'slate' | 'blue' | 'green' | 'amber' | 'red' }) {
   const c = {
-    slate: 'bg-slate-100 text-slate-700',
-    blue: 'bg-blue-100 text-blue-700',
-    green: 'bg-emerald-100 text-emerald-700',
+    slate: 'bg-ink-100 text-ink-700',
+    blue: 'bg-brand-100 text-brand-700',
+    green: 'bg-brand-100 text-brand-800',
     amber: 'bg-amber-100 text-amber-800',
     red: 'bg-red-100 text-red-700',
   }[cor]
@@ -73,9 +73,10 @@ export function Selo({ children, cor = 'slate' }: { children: ReactNode; cor?: '
 
 export function Indicador({ rotulo, valor, sub, cor }: { rotulo: string; valor: string; sub?: string; cor?: string }) {
   return (
-    <div className="card">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{rotulo}</p>
-      <p className={`mt-1 text-xl font-semibold ${cor ?? ''}`}>{valor}</p>
+    <div className="card relative overflow-hidden">
+      <span className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-brand-400 to-brand-600" />
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{rotulo}</p>
+      <p className={`mt-1 text-2xl font-bold tracking-tight text-ink-900 ${cor ?? ''}`}>{valor}</p>
       {sub && <p className="text-xs text-slate-500">{sub}</p>}
     </div>
   )

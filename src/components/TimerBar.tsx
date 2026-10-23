@@ -38,16 +38,16 @@ export function TimerBar() {
   if (!ativos.length || !usuario) return null
 
   return (
-    <div className="border-b border-blue-200 bg-blue-50">
+    <div className="border-b border-brand-800 bg-ink-800 text-white shadow-md">
       {ativos.map((a) => (
         <div key={a.id} className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-2 text-sm">
           <span className={`h-2 w-2 rounded-full ${a.estado === 'rodando' ? 'animate-pulse bg-red-500' : 'bg-amber-500'}`} />
           <span className="font-mono text-base font-semibold">{fmtRelogio(segundos(a))}</span>
-          <Link className="flex-1 truncate text-blue-700 hover:underline" to={`/tarefas/${a.tarefa_id}`}>
+          <Link className="flex-1 truncate text-brand-200 hover:underline" to={`/tarefas/${a.tarefa_id}`}>
             {a.tarefas?.titulo ?? 'Tarefa'}
           </Link>
           {a.estado === 'rodando' ? (
-            <button className="btn-secondary !py-1" onClick={() => pausar(a.id).then(avisarTimer)}>
+            <button className="btn-secondary !py-1 !border-0" onClick={() => pausar(a.id).then(avisarTimer)}>
               Pausar
             </button>
           ) : (
