@@ -404,3 +404,30 @@ alter table modelos_projeto enable row level security;
 drop policy if exists modelos_all on modelos_projeto;
 create policy modelos_all on modelos_projeto for all to authenticated
   using (is_admin()) with check (is_admin());
+
+-- ───────────── Fase 6: NFS-e (emissão assistida pelo Emissor Nacional) ─────────────
+
+-- endereço do tomador (cliente)
+alter table clientes add column if not exists cep text;
+alter table clientes add column if not exists logradouro text;
+alter table clientes add column if not exists numero text;
+alter table clientes add column if not exists complemento text;
+alter table clientes add column if not exists bairro text;
+alter table clientes add column if not exists cidade text;
+alter table clientes add column if not exists uf text;
+
+-- dados padrão do serviço prestado
+alter table configuracoes add column if not exists nfse_codigo_servico text;
+alter table configuracoes add column if not exists nfse_descricao_padrao text;
+alter table configuracoes add column if not exists nfse_municipio text;
+
+-- controle da nota em cada fatura (hoje: emissão manual no portal; campos servem também a uma futura emissão por API)
+alter table faturas add column if not exists nfse_status text not null default 'pendente'
+  check (nfse_status in ('pendente','emitida','dispensada'));
+alter table faturas add column if not exists nfse_numero text;
+alter table faturas add column if not exists nfse_chave text;
+alter table faturas add column if not exists nfse_emitida_em date;
+alter table faturas add column if not exists nfse_valor numeric(14,2);
+alter table faturas add column if not exists nfse_pdf text;     -- caminho no bucket "anexos"
+alter table faturas add column if not exists nfse_xml text;     -- caminho no bucket "anexos"
+alter table faturas add column if not exists nfse_origem text default 'manual';

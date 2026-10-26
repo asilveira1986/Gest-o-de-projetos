@@ -56,7 +56,7 @@ export function Configuracoes() {
   const { dados, carregando, recarregar } = useCarga(async () => ({
     usuarios: ok(await supabase.from('usuarios').select('*').order('nome')) as Usuario[],
     categorias: ok(await supabase.from('categorias_custo').select('*').order('nome')) as { id: string; nome: string }[],
-    config: ok(await supabase.from('configuracoes').select('*').eq('id', 1).single()) as { empresa_nome: string | null; logo_data: string | null; dados_pagamento: string | null },
+    config: ok(await supabase.from('configuracoes').select('*').eq('id', 1).single()) as { empresa_nome: string | null; logo_data: string | null; dados_pagamento: string | null; nfse_codigo_servico: string | null; nfse_descricao_padrao: string | null; nfse_municipio: string | null },
   }), [])
 
   if (usuario?.perfil !== 'admin') return <Erro msg="Apenas administradores acessam as configurações." />
@@ -99,6 +99,17 @@ export function Configuracoes() {
             <button className="text-slate-400 hover:text-red-600" onClick={() => tenta(async () => ok(await supabase.from('categorias_custo').delete().eq('id', c.id)))}>×</button></span>))}</div>
         <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (novaCat.trim()) void tenta(async () => { ok(await supabase.from('categorias_custo').insert({ nome: novaCat.trim() })); setNovaCat('') }) }}>
           <input className="input" placeholder="Nova categoria" value={novaCat} onChange={(e) => setNovaCat(e.target.value)} /><button className="btn-secondary">Adicionar</button></form>
+      </section>
+
+      <section className="card space-y-3">
+        <h2 className="font-medium">NFS-e (emissão assistida pelo portal do governo)</h2>
+        <p className="text-xs text-slate-500">Estes dados pré-preenchem a nota que você emite no Emissor Nacional. Confirme o código do serviço com seu contador.</p>
+        <Campo rotulo="Código do serviço (tributação nacional)"><input className="input" defaultValue={dados.config.nfse_codigo_servico ?? ''} placeholder="Ex.: 01.07.01"
+          onBlur={(e) => tenta(async () => ok(await supabase.from('configuracoes').update({ nfse_codigo_servico: e.target.value.trim() || null }).eq('id', 1)))} /></Campo>
+        <Campo rotulo="Descrição padrão do serviço"><textarea className="input" rows={2} defaultValue={dados.config.nfse_descricao_padrao ?? ''} placeholder="Ex.: Serviços de desenvolvimento de software"
+          onBlur={(e) => tenta(async () => ok(await supabase.from('configuracoes').update({ nfse_descricao_padrao: e.target.value.trim() || null }).eq('id', 1)))} /></Campo>
+        <Campo rotulo="Município de prestação"><input className="input" defaultValue={dados.config.nfse_municipio ?? ''} placeholder="Cidade/UF"
+          onBlur={(e) => tenta(async () => ok(await supabase.from('configuracoes').update({ nfse_municipio: e.target.value.trim() || null }).eq('id', 1)))} /></Campo>
       </section>
 
       <Backup />

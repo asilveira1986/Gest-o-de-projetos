@@ -35,6 +35,7 @@ Deploy: Vercel/Railway apontando para este repositório, com as duas variáveis 
 | Custos recorrentes | licenças, hospedagem etc. (semanal/mensal/anual) na aba Custos do projeto; as ocorrências vencidas são lançadas como "realizado" ao abrir o sistema, sem duplicar |
 | Modelos de projeto | "Salvar como modelo" no projeto (tarefas, checklists, estimativas, prazos relativos, orçamento, cobrança, custos recorrentes); em Projetos → Modelos cria um projeto novo recalculando as datas a partir do início |
 | Backup completo | Configurações → Backup: ZIP (dados + comprovantes e anexos), JSON ou Excel, com aviso quando passa de 30 dias sem backup |
+| NFS-e (MEI, emissão assistida) | em cada fatura: dados prontos para copiar no Emissor Nacional (gov.br), validação de CPF/CNPJ, registro da nota emitida com leitura do XML e conferência de valor/documento, PDF e XML guardados, status pendente/emitida/sem nota |
 | Busca | `Ctrl/⌘ + K`: páginas, ações (lançar hora/custo), projetos e tarefas |
 | Atalho | botão flutuante "+" em todas as telas para lançar hora ou custo |
 
@@ -48,5 +49,6 @@ Projeto concluído/cancelado bloqueia novos lançamentos, exceto para o admin (t
 
 - Colaboradores (RLS por projeto/membro) já estão modelados no banco, mas a tela de convite de usuários fica para a fase seguinte; por ora, novos usuários se cadastram sozinhos e o admin ajusta perfil/valor/hora em Configurações.
 - Horas de cronômetros ainda abertos entram nos totais apenas quando pausadas ou paradas.
+- NFS-e: o sistema **não emite** a nota. A emissão por API exige certificado digital e-CNPJ; por isso o fluxo é assistido (você emite no portal do governo e registra aqui). Os campos de status/número/chave já permitem uma futura emissão automática.
 - A restauração automática de um backup ainda não existe: o backup serve para guarda e conferência (JSON/ZIP).
 - Fora do escopo: Gantt, emissão de notas, portal do cliente, app nativo, notificações, modelos de projeto, multi-empresa.

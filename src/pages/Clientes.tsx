@@ -42,13 +42,17 @@ export function Clientes() {
 
 function ClienteForm({ cliente, onSalvo }: { cliente?: Cliente; onSalvo: () => void }) {
   const [f, setF] = useState({ nome: cliente?.nome ?? '', documento: cliente?.documento ?? '', email: cliente?.email ?? '', telefone: cliente?.telefone ?? '',
-    valor: cliente ? String(cliente.valor_hora_venda_padrao).replace('.', ',') : '' })
+    valor: cliente ? String(cliente.valor_hora_venda_padrao).replace('.', ',') : '',
+    cep: cliente?.cep ?? '', logradouro: cliente?.logradouro ?? '', numero: cliente?.numero ?? '', complemento: cliente?.complemento ?? '',
+    bairro: cliente?.bairro ?? '', cidade: cliente?.cidade ?? '', uf: cliente?.uf ?? '' })
   const [erro, setErro] = useState<string | null>(null)
   const set = (k: keyof typeof f, v: string) => setF((s) => ({ ...s, [k]: v }))
   async function salvar(e: React.FormEvent) {
     e.preventDefault()
     const row = { nome: f.nome, documento: f.documento || null, email: f.email || null, telefone: f.telefone || null,
-      valor_hora_venda_padrao: f.valor ? Number(f.valor.replace(/\./g, '').replace(',', '.')) : 0 }
+      valor_hora_venda_padrao: f.valor ? Number(f.valor.replace(/\./g, '').replace(',', '.')) : 0,
+      cep: f.cep || null, logradouro: f.logradouro || null, numero: f.numero || null, complemento: f.complemento || null,
+      bairro: f.bairro || null, cidade: f.cidade || null, uf: f.uf.toUpperCase() || null }
     try {
       if (cliente) ok(await supabase.from('clientes').update(row).eq('id', cliente.id)); else ok(await supabase.from('clientes').insert(row))
       onSalvo()
@@ -63,6 +67,18 @@ function ClienteForm({ cliente, onSalvo }: { cliente?: Cliente; onSalvo: () => v
         <Campo rotulo="E-mail"><input type="email" className="input" value={f.email} onChange={(e) => set('email', e.target.value)} /></Campo>
         <Campo rotulo="Valor/hora de venda (R$)"><input className="input" inputMode="decimal" value={f.valor} onChange={(e) => set('valor', e.target.value)} /></Campo>
       </div>
+      <fieldset className="space-y-3 rounded-lg border border-slate-200 p-3">
+        <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Endereço (usado na NFS-e)</legend>
+        <div className="grid grid-cols-3 gap-3">
+          <Campo rotulo="CEP"><input className="input" value={f.cep} onChange={(e) => set('cep', e.target.value)} /></Campo>
+          <Campo rotulo="Logradouro" className="col-span-2"><input className="input" value={f.logradouro} onChange={(e) => set('logradouro', e.target.value)} /></Campo>
+          <Campo rotulo="Número"><input className="input" value={f.numero} onChange={(e) => set('numero', e.target.value)} /></Campo>
+          <Campo rotulo="Complemento" className="col-span-2"><input className="input" value={f.complemento} onChange={(e) => set('complemento', e.target.value)} /></Campo>
+          <Campo rotulo="Bairro"><input className="input" value={f.bairro} onChange={(e) => set('bairro', e.target.value)} /></Campo>
+          <Campo rotulo="Cidade"><input className="input" value={f.cidade} onChange={(e) => set('cidade', e.target.value)} /></Campo>
+          <Campo rotulo="UF"><input className="input" maxLength={2} value={f.uf} onChange={(e) => set('uf', e.target.value)} /></Campo>
+        </div>
+      </fieldset>
       <Erro msg={erro} /><button className="btn-primary w-full">Salvar</button>
     </form>
   )

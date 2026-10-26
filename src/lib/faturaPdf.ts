@@ -61,6 +61,10 @@ export function gerarFaturaPdf(args: {
   y = doc.lastAutoTable.finalY + 10
   doc.setFontSize(13)
   doc.text(`Total: ${brl(fatura.valor)}`, 196, y, { align: 'right' })
+  if (fatura.nfse_status === 'emitida' && fatura.nfse_numero) {
+    doc.setFontSize(10)
+    doc.text(`NFS-e nº ${fatura.nfse_numero}${fatura.nfse_emitida_em ? ` de ${fmtData(fatura.nfse_emitida_em)}` : ''}`, 196, y + 6, { align: 'right' })
+  }
 
   if (fatura.descricao && linhas.length > 1) {
     doc.setFontSize(10)

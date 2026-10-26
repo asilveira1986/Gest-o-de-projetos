@@ -18,6 +18,13 @@ export interface Cliente {
   email: string | null
   telefone: string | null
   valor_hora_venda_padrao: number
+  cep: string | null
+  logradouro: string | null
+  numero: string | null
+  complemento: string | null
+  bairro: string | null
+  cidade: string | null
+  uf: string | null
 }
 
 export interface Projeto {
@@ -150,6 +157,13 @@ export interface Fatura {
   valor: number
   pago_em: string | null
   valor_pago: number | null
+  nfse_status: 'pendente' | 'emitida' | 'dispensada'
+  nfse_numero: string | null
+  nfse_chave: string | null
+  nfse_emitida_em: string | null
+  nfse_valor: number | null
+  nfse_pdf: string | null
+  nfse_xml: string | null
   clientes?: Pick<Cliente, 'nome'> | null
 }
 

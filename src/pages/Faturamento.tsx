@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { NfseModal } from '../components/NfseModal'
 import { Campo, Carregando, Erro, Indicador, Modal, Selo, Vazio } from '../components/ui'
 import { useCarga } from '../components/useAsync'
 import { somarDias, statusFatura } from '../lib/calc'
@@ -43,6 +44,7 @@ export function Faturamento() {
   const [gerar, setGerar] = useState<GrupoCliente | null>(null)
   const [avulsa, setAvulsa] = useState(false)
   const [pagar, setPagar] = useState<Fatura | null>(null)
+  const [nota, setNota] = useState<Fatura | null>(null)
   const hoje_ = hoje()
 
   const { dados, erro, carregando, recarregar } = useCarga(async () => {
@@ -86,6 +88,7 @@ export function Faturamento() {
       aFaturar: grupos.reduce((s, g) => s + g.total, 0),
       aReceber: abertas.reduce((s, f) => s + f.valor, 0),
       vencido: vencidas.reduce((s, f) => s + f.valor, 0),
+      nfsePendentes: fs.filter((f) => f.nfse_status === 'pendente').length,
       recebidoMes: fs.filter((f) => f.pago_em?.startsWith(mes)).reduce((s, f) => s + (f.valor_pago ?? f.valor), 0),
     }
   }, [dados, grupos, hoje_])
@@ -99,10 +102,11 @@ export function Faturamento() {
         <button className="btn-secondary" onClick={() => setAvulsa(true)}>+ Fatura avulsa (valor fixo)</button>
       </div>
       <Erro msg={erro} />
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Indicador rotulo="A faturar" valor={brl(resumo.aFaturar)} sub="Horas e repasses pendentes" />
         <Indicador rotulo="A receber" valor={brl(resumo.aReceber)} sub="Faturas em aberto" />
         <Indicador rotulo="Vencido" valor={brl(resumo.vencido)} cor={resumo.vencido > 0 ? '!text-red-600' : ''} />
+        <Indicador rotulo="NFS-e pendentes" valor={String(resumo.nfsePendentes)} cor={resumo.nfsePendentes ? '!text-amber-600' : ''} sub="Faturas sem nota" />
         <Indicador rotulo="Recebido no mês" valor={brl(resumo.recebidoMes)} cor="!text-brand-600" />
       </div>
 
@@ -140,13 +144,15 @@ export function Faturamento() {
 
       {aba === 'faturas' && (!dados?.faturas.length ? <Vazio>Nenhuma fatura emitida.</Vazio> : (
         <div className="card overflow-x-auto p-0"><table className="w-full">
-          <thead className="border-b bg-ink-50"><tr><th className="th">Cliente</th><th className="th">Descrição</th><th className="th">Emissão</th><th className="th">Vencimento</th><th className="th">Valor</th><th className="th">Situação</th><th className="th" /></tr></thead>
+          <thead className="border-b bg-ink-50"><tr><th className="th">Cliente</th><th className="th">Descrição</th><th className="th">Emissão</th><th className="th">Vencimento</th><th className="th">Valor</th><th className="th">Situação</th><th className="th">NFS-e</th><th className="th" /></tr></thead>
           <tbody className="divide-y divide-slate-100">{dados.faturas.map((f) => {
             const st = statusFatura(f, hoje_)
             return (
               <tr key={f.id}><td className="td font-medium">{f.clientes?.nome}</td><td className="td">{f.descricao ?? '—'}</td>
                 <td className="td">{fmtData(f.emitida_em)}</td><td className="td">{fmtData(f.vencimento)}</td><td className="td">{brl(f.valor)}</td>
                 <td className="td">{st === 'paga' ? <Selo cor="green">paga {fmtData(f.pago_em)}</Selo> : st === 'vencida' ? <Selo cor="red">vencida</Selo> : <Selo cor="amber">em aberto</Selo>}</td>
+                <td className="td"><button onClick={() => setNota(f)} title="Abrir NFS-e">
+                  {f.nfse_status === 'emitida' ? <Selo cor="green">nº {f.nfse_numero}</Selo> : f.nfse_status === 'dispensada' ? <Selo>sem nota</Selo> : <Selo cor="amber">emitir NFS-e</Selo>}</button></td>
                 <td className="td whitespace-nowrap text-right">
                   <button className="mr-3 text-slate-600 hover:text-brand-700" onClick={() => baixarPdf(f).catch((e: Error) => alert(e.message))}>PDF</button>
                   {st !== 'paga' ? <button className="text-brand-700" onClick={() => setPagar(f)}>registrar pagamento</button>
@@ -159,6 +165,7 @@ export function Faturamento() {
 
       {gerar && <Modal titulo={`Gerar fatura — ${gerar.nome}`} onClose={() => setGerar(null)}><FormGerar grupo={gerar} onSalvo={() => { setGerar(null); setAba('faturas'); void recarregar() }} /></Modal>}
       {avulsa && dados && <Modal titulo="Fatura avulsa" onClose={() => setAvulsa(false)}><FormAvulsa clientes={dados.clientes} fixos={dados.fixos} onSalvo={() => { setAvulsa(false); setAba('faturas'); void recarregar() }} /></Modal>}
+      {nota && <NfseModal fatura={nota} onClose={() => setNota(null)} onSalvo={() => { setNota(null); void recarregar() }} />}
       {pagar && <Modal titulo="Registrar pagamento" onClose={() => setPagar(null)}><FormPagamento fatura={pagar} onSalvo={() => { setPagar(null); void recarregar() }} /></Modal>}
     </div>
   )

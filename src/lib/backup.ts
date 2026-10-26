@@ -82,6 +82,7 @@ export async function baixarZip(d: Dump, progresso?: (txt: string) => void): Pro
   zip.file('dados.json', JSON.stringify(envelope(d), null, 2))
   const caminhos: [string, string][] = [
     ...d.custos.filter((c) => c.comprovante_url).map((c) => ['comprovantes', String(c.comprovante_url)] as [string, string]),
+    ...d.faturas.flatMap((f) => [f.nfse_pdf, f.nfse_xml]).filter(Boolean).map((c) => ['anexos', String(c)] as [string, string]),
     ...d.anexos.filter((a) => a.caminho).map((a) => ['anexos', String(a.caminho)] as [string, string]),
   ]
   const falhas: string[] = []
