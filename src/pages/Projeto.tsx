@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { CustoForm } from '../components/CustoForm'
 import { HorasForm } from '../components/HorasForm'
+import { SalvarModelo } from '../components/Modelos'
 import { Recorrentes } from '../components/Recorrentes'
 import { AvisoPrevisao } from '../components/AvisoPrevisao'
 import { BarraOrcamento, Campo, Carregando, Erro, Indicador, Modal, Selo, Vazio } from '../components/ui'
@@ -23,6 +24,7 @@ export function ProjetoPage() {
   const { usuario } = useAuth()
   const aba: Aba = ABAS_PROJETO.some(([k]) => k === abaParam) ? (abaParam as Aba) : 'resumo'
   const [editar, setEditar] = useState(false)
+  const [modelo, setModelo] = useState(false)
   const { dados, erro, carregando, recarregar } = useCarga(async () => {
     const [p, t, h, c, m, u] = await Promise.all([
       supabase.from('projetos').select('*, clientes(*)').eq('id', id).single(),
@@ -72,6 +74,7 @@ export function ProjetoPage() {
         </div>
         <div className="flex gap-2">
           <button className="btn-secondary" onClick={() => setEditar(true)}>Editar</button>
+          {usuario?.perfil === 'admin' && <button className="btn-secondary" onClick={() => setModelo(true)}>Salvar como modelo</button>}
           <button className="btn-secondary" onClick={alternarArquivo}>{p.arquivado ? 'Desarquivar' : 'Arquivar'}</button>
           {usuario?.perfil === 'admin' && <button className="btn-secondary text-red-600" onClick={excluir}>Excluir</button>}
         </div>
@@ -91,6 +94,7 @@ export function ProjetoPage() {
       {aba === 'custos' && <Custos projetoId={id} custos={r.custos} onMudou={recarregar} />}
       {aba === 'horas' && <Horas horas={r.horas} fixo={p.tipo_cobranca === 'fixo'} onMudou={recarregar} />}
 
+      {modelo && <SalvarModelo projetoId={id} nomeSugerido={`Modelo — ${p.nome}`} onClose={() => setModelo(false)} />}
       {editar && <Modal titulo="Editar projeto" onClose={() => setEditar(false)}><ProjetoForm projeto={p} onSalvo={() => { setEditar(false); void recarregar() }} /></Modal>}
     </div>
   )

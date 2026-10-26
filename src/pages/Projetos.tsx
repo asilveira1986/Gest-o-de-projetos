@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ModelosModal } from '../components/Modelos'
 import { BarraOrcamento, Campo, Carregando, Erro, Modal, Selo, Vazio } from '../components/ui'
 import { useCarga } from '../components/useAsync'
 import { carregarResumos } from '../lib/dados'
@@ -11,6 +12,7 @@ import { STATUS_PROJETO, type Cliente, type Projeto, type StatusProjeto, type Us
 export function Projetos() {
   const [arquivados, setArquivados] = useState(false)
   const [novo, setNovo] = useState(false)
+  const [modelos, setModelos] = useState(false)
   const { dados, erro, carregando, recarregar } = useCarga(() => carregarResumos(arquivados), [arquivados])
 
   return (
@@ -21,6 +23,7 @@ export function Projetos() {
           <label className="flex items-center gap-1 text-sm">
             <input type="checkbox" checked={arquivados} onChange={(e) => setArquivados(e.target.checked)} /> Mostrar arquivados
           </label>
+          <button className="btn-secondary" onClick={() => setModelos(true)}>Modelos</button>
           <button className="btn-primary" onClick={() => setNovo(true)}>+ Projeto</button>
         </div>
       </div>
@@ -45,6 +48,7 @@ export function Projetos() {
           </table>
         </div>
       )}
+      {modelos && <ModelosModal onClose={() => setModelos(false)} />}
       {novo && <Modal titulo="Novo projeto" onClose={() => setNovo(false)}><ProjetoForm onSalvo={() => { setNovo(false); void recarregar() }} /></Modal>}
     </div>
   )

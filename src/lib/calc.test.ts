@@ -3,6 +3,8 @@ import {
   alertaOrcamento, custoProjetado, diasEntre, inicioSemana, previsaoEstouro, custoTotal, excedeLimiteDia, horasDosIntervalos, margem,
   pausaExpirada, pctConsumido, progresso, receita, receitaPorHora, saldo, somarDias, statusFatura, tarefaAtrasada, valorVendaEfetivo,
 } from './calc'
+import { linhaParaExcel, LIMITE_CELULA } from './backup'
+import { aplicarModelo, extrairModelo } from './modelos'
 import { gradeDoMes, mesAnterior, proximoMes } from './calendario'
 import { ocorrenciasDe, proximaOcorrencia } from './recorrencia'
 import { fmtData, fmtHoras, fmtRelogio, parseHoras } from './format'
@@ -198,5 +200,47 @@ describe('grade do calendário', () => {
   it('navega entre meses na virada do ano', () => {
     expect(mesAnterior(2026, 1)).toEqual({ ano: 2025, mes: 12 })
     expect(proximoMes(2026, 12)).toEqual({ ano: 2027, mes: 1 })
+  })
+})
+
+describe('modelos de projeto', () => {
+  const projeto = { descricao: 'Site institucional', orcamento: 8000, tipo_cobranca: 'hora' as const, valor_fixo: null, valor_hora_venda: 150, data_inicio: '2026-01-05', prazo: '2026-02-04' }
+  const tarefas = [
+    { id: 'b', titulo: 'Desenvolvimento', descricao: null, prioridade: 'media', horas_estimadas: 20, prazo: '2026-01-25', ordem: 2, status: 'concluida', responsavel_id: 'u1' },
+    { id: 'a', titulo: 'Briefing', descricao: 'Reunião', prioridade: 'alta', horas_estimadas: 2, prazo: '2026-01-08', ordem: 1, status: 'em_andamento', responsavel_id: 'u1' },
+    { id: 'c', titulo: 'Sem prazo', descricao: null, prioridade: 'baixa', horas_estimadas: 0, prazo: null, ordem: 3, status: 'a_fazer', responsavel_id: null },
+  ] as never
+  const subs = [{ tarefa_id: 'a', titulo: 'Coletar logo' }, { tarefa_id: 'a', titulo: 'Definir escopo' }, { tarefa_id: 'b', titulo: 'Deploy' }]
+  const rec = [{ descricao: 'Hospedagem', categoria: 'Software/Licença', valor: 50, fornecedor: null, repassar_cliente: true, frequencia: 'mensal', dia_mes: 10, inicio: '2026-01-10' }] as never
+
+  const m = extrairModelo(projeto, tarefas, subs, rec)
+  it('extrai estrutura ordenada, com deslocamentos em dias e sem estado', () => {
+    expect(m.tarefas.map((t) => t.titulo)).toEqual(['Briefing', 'Desenvolvimento', 'Sem prazo'])
+    expect(m.tarefas.map((t) => t.prazo_dias)).toEqual([3, 20, null])
+    expect(m.projeto.duracao_dias).toBe(30)
+    expect(m.tarefas[0].subtarefas).toEqual(['Coletar logo', 'Definir escopo'])
+    expect(JSON.stringify(m)).not.toContain('responsavel')
+    expect(m.recorrentes[0]).not.toHaveProperty('inicio')
+  })
+  it('aplica a nova data de início a prazos e recorrências', () => {
+    const plano = aplicarModelo(m, '2026-11-02')
+    expect(plano.prazo).toBe('2026-12-02')
+    expect(plano.tarefas.map((t) => t.prazo)).toEqual(['2026-11-05', '2026-11-22', null])
+    expect(plano.recorrentes[0].inicio).toBe('2026-11-02')
+  })
+  it('projeto sem datas gera modelo sem prazos', () => {
+    const sem = extrairModelo({ ...projeto, data_inicio: null, prazo: null }, tarefas, [], [])
+    expect(sem.projeto.duracao_dias).toBeNull()
+    expect(aplicarModelo(sem, '2026-11-02').prazo).toBeNull()
+  })
+})
+
+describe('backup para Excel', () => {
+  it('mantém primitivos, serializa objetos e trunca células enormes', () => {
+    const l = linhaParaExcel({ a: 1, b: 'x', c: null, d: true, e: { k: 1 }, logo: 'z'.repeat(LIMITE_CELULA + 10) })
+    expect(l.a).toBe(1); expect(l.c).toBeNull(); expect(l.d).toBe(true)
+    expect(l.e).toBe('{"k":1}')
+    expect(String(l.logo)).toContain('veja o backup JSON')
+    expect(String(l.logo).length).toBeLessThan(100)
   })
 })

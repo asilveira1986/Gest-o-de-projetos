@@ -390,3 +390,17 @@ alter table custos_recorrentes enable row level security;
 drop policy if exists custos_rec_all on custos_recorrentes;
 create policy custos_rec_all on custos_recorrentes for all to authenticated
   using (pode_acessar_projeto(projeto_id)) with check (pode_acessar_projeto(projeto_id));
+
+-- ───────────── Fase 5: modelos de projeto ─────────────
+
+create table if not exists modelos_projeto (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  descricao text,
+  dados jsonb not null,                      -- estrutura: projeto, tarefas (com checklist) e custos recorrentes
+  criado_em timestamptz not null default now()
+);
+alter table modelos_projeto enable row level security;
+drop policy if exists modelos_all on modelos_projeto;
+create policy modelos_all on modelos_projeto for all to authenticated
+  using (is_admin()) with check (is_admin());

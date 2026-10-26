@@ -1,9 +1,53 @@
 import { useState } from 'react'
 import { Campo, Carregando, Erro } from '../components/ui'
+import { baixarExcel, baixarJson, baixarZip, coletarDados, registrarBackup, totalDeLinhas, ultimoBackup } from '../lib/backup'
+import { fmtData, hoje } from '../lib/format'
+import { diasEntre } from '../lib/calc'
 import { useCarga } from '../components/useAsync'
 import { useAuth } from '../lib/auth'
 import { ok, supabase } from '../lib/supabase'
 import type { Usuario } from '../lib/types'
+
+function Backup() {
+  const [ocupado, setOcupado] = useState(false)
+  const [status, setStatus] = useState<string | null>(null)
+  const [erro, setErro] = useState<string | null>(null)
+  const [ultimo, setUltimo] = useState(ultimoBackup())
+  const atrasado = !ultimo || diasEntre(ultimo, hoje()) > 30
+
+  async function exportar(formato: 'json' | 'excel' | 'zip') {
+    setOcupado(true); setErro(null); setStatus('Lendo dados…')
+    try {
+      const d = await coletarDados((t, i, n) => setStatus(`Lendo ${t} (${i + 1}/${n})…`))
+      if (formato === 'json') baixarJson(d)
+      else if (formato === 'excel') await baixarExcel(d)
+      else {
+        const r = await baixarZip(d, setStatus)
+        if (r.falhas.length) setErro(`${r.falhas.length} arquivo(s) não puderam ser baixados (listados em arquivos/FALHAS.txt no ZIP).`)
+      }
+      registrarBackup(); setUltimo(hoje())
+      setStatus(`Backup gerado: ${totalDeLinhas(d)} registros.`)
+    } catch (e) { setErro((e as Error).message); setStatus(null) } finally { setOcupado(false) }
+  }
+
+  return (
+    <section className="card space-y-3">
+      <h2 className="font-medium">Backup completo</h2>
+      <p className="text-sm text-slate-600">Baixa todos os dados do sistema (projetos, tarefas, horas, custos, clientes, faturas, modelos e configurações).</p>
+      <p className={`rounded-lg px-3 py-2 text-sm ${atrasado ? 'bg-amber-50 text-amber-800' : 'bg-brand-50 text-brand-800'}`}>
+        {ultimo ? `Último backup feito neste navegador: ${fmtData(ultimo)}.` : 'Nenhum backup feito neste navegador ainda.'}{atrasado && ' Recomendado: fazer um backup agora.'}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <button className="btn-primary" disabled={ocupado} onClick={() => exportar('zip')}>ZIP completo (dados + arquivos)</button>
+        <button className="btn-secondary" disabled={ocupado} onClick={() => exportar('json')}>Só dados (JSON)</button>
+        <button className="btn-secondary" disabled={ocupado} onClick={() => exportar('excel')}>Planilha (Excel)</button>
+      </div>
+      {status && <p className="text-sm text-slate-600">{status}</p>}
+      <Erro msg={erro} />
+      <p className="text-xs text-slate-500">O ZIP inclui comprovantes e anexos. JSON e Excel levam só os dados (o JSON guarda o caminho de cada arquivo). Este backup é seu, fora do Supabase; guarde-o em local seguro. A restauração automática ainda não existe.</p>
+    </section>
+  )
+}
 
 export function Configuracoes() {
   const { usuario } = useAuth()
@@ -56,6 +100,8 @@ export function Configuracoes() {
         <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (novaCat.trim()) void tenta(async () => { ok(await supabase.from('categorias_custo').insert({ nome: novaCat.trim() })); setNovaCat('') }) }}>
           <input className="input" placeholder="Nova categoria" value={novaCat} onChange={(e) => setNovaCat(e.target.value)} /><button className="btn-secondary">Adicionar</button></form>
       </section>
+
+      <Backup />
 
       <section className="card space-y-3">
         <h2 className="font-medium">Relatório e fatura do cliente</h2>
